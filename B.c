@@ -2,19 +2,26 @@
 #include <stdlib.h>
 
 typedef struct no{
-    int folha,Nchaves;
+    int folha,nChaves;
     int *chaves;
     char **filhos;
 }TNO;
 
-void mapear(char* nome){
-
-
-
+TNO *mapear(char* nome){
+    FILE *fp = fopen(nome,"rb");
+    if (!fp) exit(1);
 }
 
-char *buscar (){
-    return NULL;
+void desmapear(TNO *no){
+}
+
+void salvar(char* nome,TNO *no){
+}
+
+char *buscar (char *nome){
+    TNO *atual = mapear(nome);
+    int x;
+    for (x=0;x<atual->nChaves)
 }
 
 
