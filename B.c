@@ -50,8 +50,21 @@ void desmapear(TNO *no){
 
 void salvar(char* nome,TNO *no){
     FILE *fp = fopen(nome,"wb+");
+}
 
-
+void liberar(){
+    FILE *fp = fopen("arq.dat","rb");
+    if (!fp) exit(1);
+    int n_chaves,x;
+    char filhos[n_chaves+1][TAM_NOME_ARQUIVO];
+    fread(&n_chaves,sizeof(int),1,fp);
+    printf("cheguei");
+    fseek(fp,sizeof(int)+(n_chaves*sizeof(int)),SEEK_SET);
+    fread(filhos,sizeof(char)*TAM_NOME_ARQUIVO,n_chaves+1,fp);
+    fclose(fp);
+    printf("%s\n",filhos[0]);
+    printf("%s\n",filhos[1]);
+    printf("%s\n",filhos[2]);
 }
 
 char *buscar (char *nome,int num){
@@ -86,15 +99,12 @@ void remocao(char *nome,int num,int t){
 void remover(char *nome,int num,int t){
     char *b = buscar(nome,num);
     if (b) {
-        remocao(nome,num,int t);
+        remocao(nome,num,t);
         free(b);
     }
 }
 
 int main(){
-    char *v = buscar("oi.txt",2);
-    if (v){
-        printf("%s\n",v);
-    }
+    liberar();
     return 0;
 }
