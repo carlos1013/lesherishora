@@ -18,10 +18,16 @@ void desmapear(TNO *no){
 void salvar(char* nome,TNO *no){
 }
 
-char *buscar (char *nome){
+char *buscar (char *nome,int num){
     TNO *atual = mapear(nome);
     int x;
-    for (x=0;x<atual->nChaves)
+    for (x=0;x<atual->nChaves;x++){
+        if (atual->chaves[x]>num) break;
+        if (atual->chaves[x]==num){
+            char n[] = malloc(sizeof(char[30]));
+
+        }
+    }
 }
 
 
