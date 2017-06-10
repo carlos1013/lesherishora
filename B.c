@@ -59,8 +59,21 @@ void desmapear(TNO *no){
 
 void salvar(char* nome,TNO *no){
     FILE *fp = fopen(nome,"wb+");
+}
 
-
+void liberar(){
+    FILE *fp = fopen("arq.dat","rb");
+    if (!fp) exit(1);
+    int n_chaves,x;
+    char filhos[n_chaves+1][TAM_NOME_ARQUIVO];
+    fread(&n_chaves,sizeof(int),1,fp);
+    printf("cheguei");
+    fseek(fp,sizeof(int)+(n_chaves*sizeof(int)),SEEK_SET);
+    fread(filhos,sizeof(char)*TAM_NOME_ARQUIVO,n_chaves+1,fp);
+    fclose(fp);
+    printf("%s\n",filhos[0]);
+    printf("%s\n",filhos[1]);
+    printf("%s\n",filhos[2]);
 }
 
 char *buscar (char *nome,int num){
@@ -183,4 +196,11 @@ int main(){
         else printf("Operacao invalida.");
 
     }
+
+    char *n = buscar("arq.dat",13);
+    if (!n)
+        printf("Não encontrou");
+    else
+        printf("%s",n);
+    return 0;
 }
