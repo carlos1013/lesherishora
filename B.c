@@ -18,9 +18,31 @@ void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
 char *buscar (char *nome, int num);
 
-TNO *mapear(char* nome){
-    FILE *fp = fopen(nome,"rb");
-    if (!fp) exit(1);
+TNO* mapear (char* nome) {
+    FILE *arq = fopen(nome, "rb");
+    if(!arq) exit(1);
+
+    TNO *novo = (TNO*)malloc(sizeof(TNO));
+
+    fread(&novo->nChaves, sizeof(int), 1, arq);
+    novo->chaves = (int*)malloc(sizeof(int)*novo->nChaves);
+    fread(novo->chaves, sizeof(int), novo->nChaves, arq);
+
+    int iNomeFilhos = sizeof(int)*(1 + novo->nChaves);
+    fseek(arq, 0, SEEK_END);
+    if (iNomeFilhos == ftell(arq)) {
+        novo->folha = 1;
+        return novo;
+    }
+    novo->folha = 0;
+    fseek(arq, iNomeFilhos, SEEK_SET);
+    novo->filhos = (char**)malloc((novo->nChaves + 1)*sizeof(char));
+    int i;
+    for(i=0; i< novo->nChaves + 1; i++)
+        novo->filhos[i] = (char*)malloc(sizeof(char)*TAM_NOME_ARQUIVO);
+
+    fread(novo->filhos, sizeof(char)*TAM_NOME_ARQUIVO, novo->nChaves+1, arq);
+    return novo;
 }
 
 void desmapear(TNO *no){
