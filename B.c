@@ -41,7 +41,6 @@ TNO* mapear (char* nome) {
     for(i=0; i< novo->nChaves + 1; i++) {
         novo->filhos[i] = (char*)malloc(sizeof(char)*TAM_NOME_ARQUIVO);
         fread(novo->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
-        printf("%s\n", novo->filhos[i]);
     }
 
     fclose(arq);
@@ -65,7 +64,6 @@ void salvar(char* nome,TNO *no){
 }
 
 char *buscar (char *nome,int num){
-    printf("Tentando abrir %s\n", nome);
     TNO *atual = mapear(nome);
     char * resp;
     int x;
@@ -109,11 +107,11 @@ char *buscar2 (char *nome,int num){
 
     fseek(arq, iNomeFilhos + i*sizeof(char)*TAM_NOME_ARQUIVO, SEEK_SET);
 
-    char *n = (char *) malloc(sizeof(char)*TAM_NOME_ARQUIVO);
-    fread(n, sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
+    char n[TAM_NOME_ARQUIVO];
+    fread(n, sizeof(char), TAM_NOME_ARQUIVO, arq);
 
     fclose(arq);
-    return buscar(n,num);
+    return buscar2(n,num);
 }
 
 void remocao(char *nome,int num,int t){
@@ -130,12 +128,59 @@ void remocao(char *nome,int num,int t){
     }
 }*/
 
-int main(){
-    char *n = buscar("arq.dat",13);
-    if (!n)
-        printf("Não encontrou");
-    else
-        printf("%s",n);
+char* inserir (char*nome, int n, int t) {
+    if (!buscar(nome, n)) {
+        TNO* atual = mapear(nome);
+        if(atual->folha) {
+            if( atual->nChaves < MAX_CHAVES(t) )
+               inserirNaFolha(nome, n);
 
-    return 0;
+
+        }
+
+    }
+}
+
+void criar(char* nome) {
+    FILE *arq = fopen(nome, "wb");
+    if(!arq) exit(1);
+    int i = 0;
+    fwrite(&i, sizeof(int), 1, arq);
+    fclose(arq);
+}
+
+int main(){
+    char nome[TAM_NOME_ARQUIVO];
+    printf("Insira o nome do arquivo:\n");
+    scanf("%s", nome);
+    criar(nome);
+    //FILE* avb = fopen(nome, "rb");
+    //if(!avb) exit(1);
+    int op;
+    while(1) {
+        printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n");
+        scanf("%d", &op);
+        if(!op) break;
+        if(op == 1) {
+            scanf("%d", &num);
+            if(num > 0)
+                nome = inserir(nome, num);
+        }
+        else if (op == 2) {
+            scanf("%d", &num);
+            if(num > 0)
+                remover(nome, num);
+        }
+        else if (op == 3) {
+            scanf("%d", &num);
+            if(num > 0)
+                buscar(nome, num);
+        }
+        else if (op == 4) imprimir(nome);
+
+        else if (op == 0) return;
+
+        else printf("Operacao invalida.");
+
+    }
 }
