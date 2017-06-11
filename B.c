@@ -52,7 +52,6 @@ void desmapear(TNO *no){
     for(i=0; i< no->nChaves + 1; i++)
         free(no->filhos[i]);
     free(no->filhos);
-
     free(no->chaves);
     free(no);
 }
@@ -61,19 +60,24 @@ void salvar(char* nome,TNO *no){
     FILE *fp = fopen(nome,"wb+");
 }
 
-void liberar(){
-    FILE *fp = fopen("arq.dat","rb");
+void liberar(char *nome){
+    FILE *fp = fopen(nome,"rb");
     if (!fp) exit(1);
-    int n_chaves,x;
-    char filhos[n_chaves+1][TAM_NOME_ARQUIVO];
+    int n_chaves,r,x=0;
     fread(&n_chaves,sizeof(int),1,fp);
-    printf("cheguei");
+    char filhos[n_chaves+1][TAM_NOME_ARQUIVO];
     fseek(fp,sizeof(int)+(n_chaves*sizeof(int)),SEEK_SET);
-    fread(filhos,sizeof(char)*TAM_NOME_ARQUIVO,n_chaves+1,fp);
+    while(1){
+        r = fread(filhos[x],sizeof(char)*TAM_NOME_ARQUIVO,1,fp);
+        if (r==0) break;
+        x++;
+    }
     fclose(fp);
-    printf("%s\n",filhos[0]);
-    printf("%s\n",filhos[1]);
-    printf("%s\n",filhos[2]);
+    remove(nome);
+    if (!x) return;
+    for (x=0;x<n_chaves;x++){
+        liberar(filhos[x]);
+    }
 }
 
 char *buscar (char *nome,int num){
@@ -112,7 +116,6 @@ char *buscar2 (char *nome,int num){
             return n;
         }
     }
-
     //verificar se é folha
     int iNomeFilhos = sizeof(int)*(1 + nChaves);
     fseek(arq, 0, SEEK_END);
@@ -121,8 +124,7 @@ char *buscar2 (char *nome,int num){
     fseek(arq, iNomeFilhos + i*sizeof(char)*TAM_NOME_ARQUIVO, SEEK_SET);
 
     char n[TAM_NOME_ARQUIVO];
-    fread(n, sizeof(char), TAM_NOME_ARQUIVO, arq);
-
+    fread(n,sizeof(char),TAM_NOME_ARQUIVO,arq);
     fclose(arq);
     return buscar2(n,num);
 }
@@ -133,74 +135,82 @@ void remocao(char *nome,int num,int t){
 }
 
 
-/*void remover(char *nome,int num,int t){
+void remover(char *nome,int num,int t){
     char *b = buscar(nome,num);
     if (b) {
         remocao(nome,num,t);
         free(b);
     }
-}*/
+}
 
-char* inserir (char*nome, int n, int t) {
-    if (!buscar(nome, n)) {
+char* inserir (char* nome, int n, int t) {
+    /*if (!buscar(nome, n)) {
         TNO* atual = mapear(nome);
         if(atual->folha) {
             if( atual->nChaves < MAX_CHAVES(t) )
                inserirNaFolha(nome, n);
-
-
         }
 
-    }
+    }*/
 }
 
 void criar(char* nome) {
-    FILE *arq = fopen(nome, "wb");
+    FILE *arq = fopen(nome,"wb");
     if(!arq) exit(1);
     int i = 0;
     fwrite(&i, sizeof(int), 1, arq);
     fclose(arq);
 }
 
+void imprimir(char *nome){
+}
+
 int main(){
     char nome[TAM_NOME_ARQUIVO];
+    int t;
+    printf("Insira o t da arvore:\n");
+    scanf("%d",&t);
     printf("Insira o nome do arquivo:\n");
-    scanf("%s", nome);
-    criar(nome);
-    //FILE* avb = fopen(nome, "rb");
-    //if(!avb) exit(1);
-    int op;
+    scanf("%s",nome);
+    setbuf(stdin,NULL);
+    //criar(nome);
+    int op,num;
     while(1) {
         printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n");
         scanf("%d", &op);
         if(!op) break;
         if(op == 1) {
             scanf("%d", &num);
-            if(num > 0)
-                nome = inserir(nome, num);
+            if(num > 0) {int alfa=0;}
+                //nome = inserir(nome,num,t);
         }
         else if (op == 2) {
             scanf("%d", &num);
             if(num > 0)
-                remover(nome, num);
+                remover(nome,num,t);
         }
         else if (op == 3) {
+            printf("Digite o valor a ser buscado:\n");
             scanf("%d", &num);
-            if(num > 0)
-                buscar(nome, num);
+            if(num > 0){
+                char *local = buscar2(nome,num);
+                if (local){
+                    printf("O valor esta no arquivo %s\n",local);
+                    free(local);
+                }
+                else{
+                    printf("O valor nao foi encontrado\n");
+                }
+            }
         }
         else if (op == 4) imprimir(nome);
 
-        else if (op == 0) return;
+        else if (op == 0){
+            liberar(nome);
+            return 0;
+        }
 
         else printf("Operacao invalida.");
 
     }
-
-    char *n = buscar("arq.dat",13);
-    if (!n)
-        printf("Não encontrou");
-    else
-        printf("%s",n);
-    return 0;
 }
