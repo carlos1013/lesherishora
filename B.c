@@ -75,32 +75,13 @@ void liberar(char *nome){
     fclose(fp);
     remove(nome);
     if (!x) return;
-    for (x=0;x<n_chaves;x++){
+    for (x=0;x<n_chaves+1;x++){
         liberar(filhos[x]);
     }
 }
 
-char *buscar (char *nome,int num){
-    TNO *atual = mapear(nome);
-    char * resp;
-    int x;
-    for (x=0;x<atual->nChaves;x++){
-        if (atual->chaves[x]>num) break;
-        if (atual->chaves[x]==num){
-            char *n = (char *) malloc(sizeof(char)*TAM_NOME_ARQUIVO);
-            strcpy(n,nome);
-            return n;
-        }
-    }
-    if(atual->folha) resp = NULL;
-    else{
-        resp = buscar(atual->filhos[x],num);
-    }
-    desmapear(atual);
-    return resp;
-}
 
-char *buscar2 (char *nome,int num){
+char *buscar (char *nome,int num){
     FILE *arq = fopen(nome, "rb");
     if (!arq) exit(1);
     int nChaves;
@@ -116,7 +97,6 @@ char *buscar2 (char *nome,int num){
             return n;
         }
     }
-    //verificar se é folha
     int iNomeFilhos = sizeof(int)*(1 + nChaves);
     fseek(arq, 0, SEEK_END);
     if (iNomeFilhos == ftell(arq)) return NULL;
@@ -124,9 +104,10 @@ char *buscar2 (char *nome,int num){
     fseek(arq, iNomeFilhos + i*sizeof(char)*TAM_NOME_ARQUIVO, SEEK_SET);
 
     char n[TAM_NOME_ARQUIVO];
-    fread(n,sizeof(char),TAM_NOME_ARQUIVO,arq);
+    fread(n, sizeof(char), TAM_NOME_ARQUIVO, arq);
+
     fclose(arq);
-    return buscar2(n,num);
+    return buscar(n,num);
 }
 
 void remocao(char *nome,int num,int t){
@@ -178,7 +159,6 @@ int main(){
     while(1) {
         printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n");
         scanf("%d", &op);
-        if(!op) break;
         if(op == 1) {
             scanf("%d", &num);
             if(num > 0) {int alfa=0;}
@@ -193,7 +173,7 @@ int main(){
             printf("Digite o valor a ser buscado:\n");
             scanf("%d", &num);
             if(num > 0){
-                char *local = buscar2(nome,num);
+                char *local = buscar(nome,num);
                 if (local){
                     printf("O valor esta no arquivo %s\n",local);
                     free(local);
@@ -210,7 +190,7 @@ int main(){
             return 0;
         }
 
-        else printf("Operacao invalida.");
+        else printf("Operacao invalida\n");
 
     }
 }
