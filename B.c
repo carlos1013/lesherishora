@@ -18,6 +18,11 @@ void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
 char *buscar (char *nome, int num);
 
+void inicializa(char *nome){
+    FILE *fp = fopen(nome,"wb");
+    fclose(fp);
+}
+
 TNO* mapear (char* nome) {
     FILE *arq = fopen(nome, "rb");
     if(!arq) exit(1);
@@ -48,10 +53,12 @@ TNO* mapear (char* nome) {
 }
 
 void desmapear(TNO *no){
-    int i;
-    for(i=0; i< no->nChaves + 1; i++)
-        free(no->filhos[i]);
-    free(no->filhos);
+    if (!no->folha){
+        int i;
+        for(i=0; i< no->nChaves + 1; i++)
+            free(no->filhos[i]);
+        free(no->filhos);
+    }
     free(no->chaves);
     free(no);
 }
@@ -110,7 +117,7 @@ char *buscar (char *nome,int num){
     return buscar(n,num);
 }
 
-void remocao(char *nome,int num,int t){
+/*void remocao(char *nome,int num,int t){
     TNO *atual = mapear(nome);
 
 }
@@ -122,17 +129,18 @@ void remover(char *nome,int num,int t){
         remocao(nome,num,t);
         free(b);
     }
-}
+}*/
 
-char* inserir (char* nome, int n, int t) {
-    /*if (!buscar(nome, n)) {
-        TNO* atual = mapear(nome);
-        if(atual->folha) {
-            if( atual->nChaves < MAX_CHAVES(t) )
-               inserirNaFolha(nome, n);
-        }
+void inserir (char* nome, int num, int t) {
+    char *p = buscar(nome,num);
+    if (p){
+        free(p);
+        return;
+    }
+    FILE *fp = fopen(nome,"rb+");
+    if (!fp) exit(1);
 
-    }*/
+
 }
 
 void criar(char* nome) {
@@ -143,7 +151,36 @@ void criar(char* nome) {
     fclose(arq);
 }
 
-void imprimir(char *nome){
+void imprimirFolha(TNO* folha, int n) {
+    int i, j;
+    for (i = 0; i < folha->nChaves; i++) {
+        for (j = n; j > 0; j--) printf("  |");
+        printf("%d\n", folha->chaves[i]);
+    }
+}
+
+void imprimir(char *nome, int n){
+    TNO* no = mapear(nome);
+    if (no->folha) {
+        imprimirFolha(no, n);
+        desmapear(no);
+        return;
+    }
+    int i, j, nChaves;
+    nChaves = no->nChaves;
+    char filho[TAM_NOME_ARQUIVO];
+    for (i = 0; i < nChaves; i++) {
+        int chaveAtual = no->chaves[i];
+        strcpy(filho, no->filhos[i]);
+        desmapear(no);
+        imprimir(filho, n + 1);
+        for (j = n; j > 0; j--) printf(" |");
+        printf("%d\n", chaveAtual);
+        no = mapear(nome);
+    }
+    strcpy(filho, no->filhos[i]);
+    desmapear(no);
+    imprimir(filho, n + 1);
 }
 
 int main(){
@@ -154,7 +191,7 @@ int main(){
     printf("Insira o nome do arquivo:\n");
     scanf("%s",nome);
     setbuf(stdin,NULL);
-    //criar(nome);
+    //inicializa(nome);
     int op,num;
     while(1) {
         printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n");
@@ -183,7 +220,9 @@ int main(){
                 }
             }
         }
-        else if (op == 4) imprimir(nome);
+        else if (op == 4) imprimir(nome,0);
+
+        else if (op == 32) test(nome);
 
         else if (op == 0){
             liberar(nome);
