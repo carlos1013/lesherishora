@@ -171,12 +171,7 @@ void inserir (char* nome, int num, int t) {
     TNO* raiz = mapear(nome);
 
     if (!raiz){
-        FILE *fp = fopen(nome,"rb+");
-        fseek(fp,0,SEEK_SET); int x = 1;
-        fwrite(&x,sizeof(int),1,fp);
-        fwrite(&num,sizeof(int),1,fp);
-        fclose(fp);
-        return;
+        criar(nome,num);
     }
 
     char *p = buscar(nome,num);
