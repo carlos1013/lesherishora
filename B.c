@@ -18,20 +18,46 @@ void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
 char *buscar (char *nome, int num);
 
+void criar(char *nome,int num){
+    FILE *fp = fopen(nome,"wb");
+    if (!fp) exit(1);
+    int x = 1;
+    fwrite(&x,sizeof(int),1,fp);
+    fwrite(&num,sizeof(int),1,fp);
+    fclose(fp);
+}
+
+void criar_nome(char* nome, int i)  {
+    itoa(i, nome, 10);
+    strcat(nome, ".dat");
+}
+
 void inicializa(char *nome){
     FILE *fp = fopen(nome,"wb");
+    if (!fp) exit(1);
     fclose(fp);
 }
 
 TNO* mapear (char* nome) {
-    FILE *arq = fopen(nome, "rb");
+    FILE *arq = fopen(nome, "rb+");
     if(!arq) exit(1);
+    int r;
 
     TNO *novo = (TNO*)malloc(sizeof(TNO));
+    r = fread(&novo->nChaves, sizeof(int), 1, arq);
+    if (!r){
+        free(novo);
+        return NULL;
+    }
 
-    fread(&novo->nChaves, sizeof(int), 1, arq);
     novo->chaves = (int*)malloc(sizeof(int)*novo->nChaves);
-    fread(novo->chaves, sizeof(int), novo->nChaves, arq);
+    r = fread(novo->chaves, sizeof(int), novo->nChaves, arq);
+
+    if (!r){
+        free(novo->chaves);
+        free(novo);
+        return NULL;
+    }
 
     int iNomeFilhos = sizeof(int)*(1 + novo->nChaves);
     fseek(arq, 0, SEEK_END);
@@ -64,7 +90,17 @@ void desmapear(TNO *no){
 }
 
 void salvar(char* nome,TNO *no){
-    FILE *fp = fopen(nome,"wb+");
+    FILE* arq = fopen(nome, "wb");
+    if (!arq) exit(1);
+    fwrite(&no->nChaves, sizeof(int), 1, arq);
+    fwrite(no->chaves, sizeof(int), no->nChaves, arq);
+    int i;
+    if(!no->folha) {
+        for(i=0; i< no->nChaves + 1; i++)
+            fwrite(no->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
+    }
+    desmapear(no);
+    fclose(arq);
 }
 
 void liberar(char *nome){
@@ -132,23 +168,45 @@ void remover(char *nome,int num,int t){
 }*/
 
 void inserir (char* nome, int num, int t) {
+    TNO* raiz = mapear(nome);
+
+    if (!raiz){
+        FILE *fp = fopen(nome,"rb+");
+        fseek(fp,0,SEEK_SET); int x = 1;
+        fwrite(&x,sizeof(int),1,fp);
+        fwrite(&num,sizeof(int),1,fp);
+        fclose(fp);
+        return;
+    }
+
     char *p = buscar(nome,num);
     if (p){
+        desmapear(raiz);
         free(p);
         return;
     }
-    FILE *fp = fopen(nome,"rb+");
-    if (!fp) exit(1);
+
+    if (raiz->nChaves == MAX_CHAVES(t)){
+        int x;
+        char n_raiz[TAM_NOME_ARQUIVO],f_esq[TAM_NOME_ARQUIVO];
+        criar_nome(n_raiz,raiz->chaves[t]); criar_nome(f_esq,raiz->chaves[t+1]);
+        criar(n_raiz,raiz->chaves[t]); criar(f_esq,raiz->chaves[t+1]);
+
+        TNO *nova_raiz = mapear(n_raiz); TNO *filho_esq = mapear(f_esq);
+        nova_raiz->filhos[0]=nome;
+        nova_raiz->filhos[1]=f_esq;
+        filho_esq->folha = raiz->folha;
+        filho_esq->nChaves = t-1;
+        for (x=0;x<t-1;x++){
+            filho_esq->chaves[x] = raiz->chaves[x+t];
+            filho_esq->filhos[x] = raiz->filhos[x+t];
+        }
+        filho_esq->filhos[x] = raiz->filhos[x+t];
+        raiz->nChaves = t-1;
+        salvar(nova_raiz,n_raiz); salvar(nome,raiz); salvar(f_esq,filho_esq);
+    }
 
 
-}
-
-void criar(char* nome) {
-    FILE *arq = fopen(nome,"wb");
-    if(!arq) exit(1);
-    int i = 0;
-    fwrite(&i, sizeof(int), 1, arq);
-    fclose(arq);
 }
 
 void imprimirFolha(TNO* folha, int n) {
@@ -185,26 +243,32 @@ void imprimir(char *nome, int n){
 
 int main(){
     char nome[TAM_NOME_ARQUIVO];
-    int t;
+    int t,op,num;
     printf("Insira o t da arvore:\n");
     scanf("%d",&t);
     printf("Insira o nome do arquivo:\n");
     scanf("%s",nome);
     setbuf(stdin,NULL);
-    //inicializa(nome);
-    int op,num;
+    printf("Esta arvore ja foi criada?\n0:Sim\n1:Nao\n");
+    scanf("%d",&op);
+    if (op){
+        inicializa(nome);
+    }
     while(1) {
-        printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n");
+        printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n-1. Sair sem liberar\n");
         scanf("%d", &op);
         if(op == 1) {
+            printf("Digite o numero a ser inserido\n");
             scanf("%d", &num);
-            if(num > 0) {int alfa=0;}
-                //nome = inserir(nome,num,t);
+            if(num > 0){
+                inserir(nome,num,t);
+            }
         }
         else if (op == 2) {
+            printf("Digite o numero a ser removido\n");
             scanf("%d", &num);
-            if(num > 0)
-                remover(nome,num,t);
+            if(num > 0) {int beta = 0;}
+                //remover(nome,num,t);
         }
         else if (op == 3) {
             printf("Digite o valor a ser buscado:\n");
@@ -222,12 +286,12 @@ int main(){
         }
         else if (op == 4) imprimir(nome,0);
 
-        else if (op == 32) test(nome);
-
         else if (op == 0){
             liberar(nome);
             return 0;
         }
+
+        else if (op == -1) return 0;
 
         else printf("Operacao invalida\n");
 
