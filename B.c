@@ -167,7 +167,26 @@ void remover(char *nome,int num,int t){
     }
 }*/
 
-c
+void ins_aux (char* nome,int num,int t){
+    int x,y;
+    TNO* atual = mapear(nome);
+    if (!atual) exit(1);
+    if (atual->folha){
+        for (x=0;x<atual->nChaves;x++){
+            if (num<atual->chaves[x]) break;
+        }
+        atual->nChaves++;
+        for (y=atual->nChaves;y>x;y--){
+            atual->chaves[y] = atual->chaves[y-1];
+        }
+        atual->chaves[x] = num;
+        salvar(nome,atual);
+    }
+    for (x=0;x<atual->nChaves;x++){
+        if (num<atual->chaves[x]) break;
+    }
+    //atual->filhos[x] e o lugar para a busca,primeiro deve checar se para onde eu estou indo tem 2t-1
+}
 
 void inserir (char* nome, int num, int t) {
     TNO* raiz = mapear(nome);
