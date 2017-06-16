@@ -114,6 +114,7 @@ void salvar(char* nome,TNO *no){
 }
 
 void liberar(char *nome){
+    printf("liberando arquivo: %s\n",nome);
     FILE *fp = fopen(nome,"rb");
     if (!fp) exit(1);
     int n_chaves,r,x=0;
@@ -177,6 +178,28 @@ void remover(char *nome,int num,int t){
     }
 }*/
 
+void dividir(char *rz,char *f_esq){
+    TNO *raiz = mapear(rz); TNO *filho_esq = mapear(f_esq);
+    char f_dir[TAM_NOME_ARQUIVO];
+    criar_nome(f_dir,filho_esq->chaves[t]);
+    criar(f_dir,filho_esq->chaves[t]);
+    TNO *filho_dir = mapear(f_dir);
+
+    int x,y;
+    for (x=0;x<raiz->nChaves;x++){
+        if (num<raiz->chaves[x]) break;
+    }
+    for (y=raiz->nChaves-1;y>x;y--){
+        raiz->chaves[y] = raiz->chaves[y-1];
+
+    }
+    if (x==0) {
+        rename()
+    }
+    raiz->chaves[x] = filho_esq->chaves[t-1];
+
+}
+
 void ins_aux (char* nome,int num,int t){
     int x,y;
     TNO* atual = mapear(nome);
@@ -196,7 +219,12 @@ void ins_aux (char* nome,int num,int t){
     for (x=0;x<atual->nChaves;x++){
         if (num<atual->chaves[x]) break;
     }
-    //atual->filhos[x] e o lugar para a busca,primeiro deve checar se para onde eu estou indo tem 2t-1
+    if (atual->chaves[x] == MAX_CHAVES(t)){
+        char direcao[TAM_NOME_ARQUIVO];
+        strcpy(direcao,atual->filhos[x]);
+        desmapear(atual);
+        dividir(nome,direcao);
+    }
 }
 
 void inserir (char* nome, int num, int t) {
@@ -225,19 +253,19 @@ void inserir (char* nome, int num, int t) {
         filho_dir->folha = raiz->folha;
         filho_dir->nChaves = t-1;
         if(!raiz->folha){
-            for (x=0;x<t-1;x++){
+            for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
                 filho_dir->filhos[x] = raiz->filhos[x+t];
             }
             filho_dir->filhos[x] = raiz->filhos[x+t];
         }
         else{
-            for (x=0;x<t-1;x++){
+            for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
             }
         }
         raiz->nChaves = t-1;
-        salvar(nova_raiz,n_raiz); salvar(nome,raiz); salvar(f_dir,filho_dir);
+        salvar(n_raiz,nova_raiz); salvar(nome,raiz); salvar(f_dir,filho_dir);
         strcpy(nome,n_raiz);
         ins_aux(nome,num,t);
         return;
