@@ -167,9 +167,10 @@ void remover(char *nome,int num,int t){
     }
 }*/
 
+c
+
 void inserir (char* nome, int num, int t) {
     TNO* raiz = mapear(nome);
-
     if (!raiz){
         criar(nome,num);
     }
@@ -183,25 +184,34 @@ void inserir (char* nome, int num, int t) {
 
     if (raiz->nChaves == MAX_CHAVES(t)){
         int x;
-        char n_raiz[TAM_NOME_ARQUIVO],f_esq[TAM_NOME_ARQUIVO];
-        criar_nome(n_raiz,raiz->chaves[t]); criar_nome(f_esq,raiz->chaves[t+1]);
-        criar(n_raiz,raiz->chaves[t]); criar(f_esq,raiz->chaves[t+1]);
+        char n_raiz[TAM_NOME_ARQUIVO],f_dir[TAM_NOME_ARQUIVO];
+        criar_nome(n_raiz,raiz->chaves[t-1]); criar_nome(f_dir,raiz->chaves[t]);
+        criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
-        TNO *nova_raiz = mapear(n_raiz); TNO *filho_esq = mapear(f_esq);
+        TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_esq);
         nova_raiz->filhos[0]=nome;
-        nova_raiz->filhos[1]=f_esq;
-        filho_esq->folha = raiz->folha;
-        filho_esq->nChaves = t-1;
-        for (x=0;x<t-1;x++){
-            filho_esq->chaves[x] = raiz->chaves[x+t];
-            filho_esq->filhos[x] = raiz->filhos[x+t];
+        nova_raiz->filhos[1]=f_dir;
+        nova_raiz->folha=0;
+        filho_dir->folha = raiz->folha;
+        filho_dir->nChaves = t-1;
+        if(!raiz->folha){
+            for (x=0;x<t-1;x++){
+                filho_dir->chaves[x] = raiz->chaves[x+t];
+                filho_dir->filhos[x] = raiz->filhos[x+t];
+            }
+            filho_dir->filhos[x] = raiz->filhos[x+t];
         }
-        filho_esq->filhos[x] = raiz->filhos[x+t];
+        else{
+            for (x=0;x<t-1;x++){
+                filho_dir->chaves[x] = raiz->chaves[x+t];
+            }
+        }
         raiz->nChaves = t-1;
-        salvar(nova_raiz,n_raiz); salvar(nome,raiz); salvar(f_esq,filho_esq);
+        salvar(nova_raiz,n_raiz); salvar(nome,raiz); salvar(f_dir,filho_dir);
+        strcpy(nome,n_raiz);
+        ins_aux(nome,num,t);
+        return;
     }
-
-
 }
 
 void imprimirFolha(TNO* folha, int n) {
