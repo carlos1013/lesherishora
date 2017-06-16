@@ -25,6 +25,8 @@ void ins_aux (char* nome,int num,int t);
 void inserir (char* nome, int num, int t);
 void imprimir(char *nome, int n);
 
+int t;
+
 void criar(char *nome,int num){
     FILE *fp = fopen(nome,"wb");
     if (!fp) exit(1);
@@ -60,7 +62,7 @@ TNO* mapear (char* nome) {
         return NULL;
     }
 
-    novo->chaves = (int*)malloc(sizeof(int)*novo->nChaves);
+    novo->chaves = (int*)malloc(sizeof(int)*MAX_CHAVES(t));
     r = fread(novo->chaves, sizeof(int), novo->nChaves, arq);
 
     if (!r){
@@ -77,9 +79,9 @@ TNO* mapear (char* nome) {
     }
     novo->folha = 0;
     fseek(arq, iNomeFilhos, SEEK_SET);
-    novo->filhos = (char**)malloc((novo->nChaves + 1)*sizeof(char*));
+    novo->filhos = (char**)malloc(MAX_FILHOS(t)*sizeof(char*));
     int i;
-    for(i=0; i< novo->nChaves + 1; i++) {
+    for(i=0; i< MAX_FILHOS(t); i++) {
         novo->filhos[i] = (char*)malloc(sizeof(char)*TAM_NOME_ARQUIVO);
         fread(novo->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
     }
@@ -91,7 +93,7 @@ TNO* mapear (char* nome) {
 void desmapear(TNO *no){
     if (!no->folha){
         int i;
-        for(i=0; i< no->nChaves + 1; i++)
+        for(i=0; i < MAX_FILHOS(t); i++)
             free(no->filhos[i]);
         free(no->filhos);
     }
@@ -296,7 +298,7 @@ void imprimir(char *nome, int n){
 
 int main(){
     char nome[TAM_NOME_ARQUIVO];
-    int t,op,num;
+    int op,num;
     printf("Insira o t da arvore:\n");
     scanf("%d",&t);
     printf("Insira o nome do arquivo:\n");
