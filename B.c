@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TAM_NOME_ARQUIVO 30
+#define TAM_NOME_ARQUIVO 15
 #define MAX_CHAVES(t) ((2 * t) -1)
 #define MAX_FILHOS(t) (2 * t)
 
@@ -13,10 +13,17 @@ typedef struct no{
     char **filhos;
 }TNO;
 
+void criar(char *nome,int num);
+void criar_nome(char* nome, int i);
+void inicializa(char *nome);
 TNO *mapear(char* nome);
 void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
+void liberar(char *nome);
 char *buscar (char *nome, int num);
+void ins_aux (char* nome,int num,int t);
+void inserir (char* nome, int num, int t);
+void imprimir(char *nome, int n);
 
 void criar(char *nome,int num){
     FILE *fp = fopen(nome,"wb");
@@ -40,7 +47,10 @@ void inicializa(char *nome){
 
 TNO* mapear (char* nome) {
     FILE *arq = fopen(nome, "rb+");
-    if(!arq) exit(1);
+    if(!arq){
+        printf("erro ao tentar mapear %s\n", nome);
+        exit(1);
+    }
     int r;
 
     TNO *novo = (TNO*)malloc(sizeof(TNO));
@@ -207,7 +217,7 @@ void inserir (char* nome, int num, int t) {
         criar_nome(n_raiz,raiz->chaves[t-1]); criar_nome(f_dir,raiz->chaves[t]);
         criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
-        TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_esq);
+        TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_dir);
         nova_raiz->filhos[0]=nome;
         nova_raiz->filhos[1]=f_dir;
         nova_raiz->folha=0;
@@ -233,36 +243,26 @@ void inserir (char* nome, int num, int t) {
     }
 }
 
-void imprimirFolha(TNO* folha, int n) {
-    int i, j;
-    for (i = 0; i < folha->nChaves; i++) {
-        for (j = n; j > 0; j--) printf("  |");
-        printf("%d\n", folha->chaves[i]);
-    }
-}
 
 void imprimir(char *nome, int n){
     TNO* no = mapear(nome);
+    int i, j, nChaves;
+    nChaves = no->nChaves;
+    for (j = n; j > 0; j--) printf("  |");
+    printf("(*");
+    for (i = 0; i < nChaves; i++) printf("%d*", no->chaves[i]);
+    printf(")\n");
     if (no->folha) {
-        imprimirFolha(no, n);
         desmapear(no);
         return;
     }
-    int i, j, nChaves;
-    nChaves = no->nChaves;
     char filho[TAM_NOME_ARQUIVO];
-    for (i = 0; i < nChaves; i++) {
-        int chaveAtual = no->chaves[i];
+    for (i = 0; i <= nChaves; i++) {
         strcpy(filho, no->filhos[i]);
         desmapear(no);
         imprimir(filho, n + 1);
-        for (j = n; j > 0; j--) printf(" |");
-        printf("%d\n", chaveAtual);
-        no = mapear(nome);
+        if (i < nChaves) no = mapear(nome);
     }
-    strcpy(filho, no->filhos[i]);
-    desmapear(no);
-    imprimir(filho, n + 1);
 }
 
 int main(){
