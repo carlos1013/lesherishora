@@ -21,8 +21,8 @@ void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
 void liberar(char *nome);
 char *buscar (char *nome, int num);
-void ins_aux (char* nome,int num,int t);
-void inserir (char* nome, int num, int t);
+void ins_aux (char* nome,int num);
+void inserir (char* nome, int num);
 void imprimir(char *nome, int n);
 
 int t;
@@ -83,9 +83,10 @@ TNO* mapear (char* nome) {
     int i;
     for(i=0; i< MAX_FILHOS(t); i++) {
         novo->filhos[i] = (char*)malloc(sizeof(char)*TAM_NOME_ARQUIVO);
-        fread(novo->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
+        if (i<= novo->nChaves){
+            fread(novo->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
+        }
     }
-
     fclose(arq);
     return novo;
 }
@@ -182,27 +183,45 @@ void remover(char *nome,int num,int t){
 
 void dividir(char *rz,char *f_esq){
     TNO *raiz = mapear(rz); TNO *filho_esq = mapear(f_esq);
-    char f_dir[TAM_NOME_ARQUIVO];
-    criar_nome(f_dir,filho_esq->chaves[t]);
-    criar(f_dir,filho_esq->chaves[t]);
-    TNO *filho_dir = mapear(f_dir);
-
     int x,y;
-    for (x=0;x<raiz->nChaves;x++){
+
+    for (x=0;x<raiz->nChaves;x++){  //inserindo o novo no na raiz
         if (num<raiz->chaves[x]) break;
     }
     for (y=raiz->nChaves-1;y>x;y--){
         raiz->chaves[y] = raiz->chaves[y-1];
-
-    }
-    if (x==0) {
-        rename()
+        raiz->filhos[y+1] = raiz->filhos[y];
     }
     raiz->chaves[x] = filho_esq->chaves[t-1];
+    strcpy(raiz->filhos[x],f_esq);
+    strcpy(raiz->filhos[x+1],f_dir);
+    raiz->nChaves++;
+    salvar(rz,raiz);
 
+    char f_dir[TAM_NOME_ARQUIVO];  //criando o novo arquivo
+    criar_nome(f_dir);
+    criar(f_dir,filho_esq->chaves[t]);
+    TNO *filho_dir = mapear(f_dir);
+
+    filho_dir->nChaves = t-1;     //dividindo os nos
+    filho_dir->folha = filho_esq->folha;
+    if (filho_dir->folha){
+        for (x=1;x<filho_dir->nChaves;x++){
+            filho_dir->chaves[x] = filho_esq->chaves[x+t];
+        }
+    }
+    else{
+        for (x=1;x<filho_dir->nChaves;x++){
+            filho_dir->chaves[x] = filho_esq->chaves[x+t];
+            filho_dir->filhos[x] = filho_esq->filhos[x+t];
+        }
+        filho_dir->filhos[x] = filho_esq->filhos[x+t];
+    }
+    filho_esq->nChaves = t-1;
+    salvar(f_esq,filho_esq); salvar(f_dir,filho_dir);
 }
 
-void ins_aux (char* nome,int num,int t){
+void ins_aux (char* nome,int num){
     int x,y;
     TNO* atual = mapear(nome);
     if (!atual) exit(1);
@@ -226,10 +245,18 @@ void ins_aux (char* nome,int num,int t){
         strcpy(direcao,atual->filhos[x]);
         desmapear(atual);
         dividir(nome,direcao);
+        atual = mapear(nome);
     }
+    for (x=0;x<atual->nChaves;x++){
+        if (num<atual->chaves[x]) break;
+    }
+    char direcao[TAM_NOME_ARQUIVO];
+    strcpy(direcao,atual->filhos[x]);
+    desmapear(atual);
+    inserir(direcao,num);
 }
 
-void inserir (char* nome, int num, int t) {
+void inserir (char* nome, int num) {
     TNO* raiz = mapear(nome);
     if (!raiz){
         criar(nome,num);
@@ -245,7 +272,7 @@ void inserir (char* nome, int num, int t) {
     if (raiz->nChaves == MAX_CHAVES(t)){
         int x;
         char n_raiz[TAM_NOME_ARQUIVO],f_dir[TAM_NOME_ARQUIVO];
-        criar_nome(n_raiz,raiz->chaves[t-1]); criar_nome(f_dir,raiz->chaves[t]);
+        criar_nome(n_raiz); criar_nome(f_dir);
         criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
         TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_dir);
@@ -272,6 +299,7 @@ void inserir (char* nome, int num, int t) {
         ins_aux(nome,num,t);
         return;
     }
+    ins_aux(nome,num);
 }
 
 
