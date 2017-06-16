@@ -181,14 +181,13 @@ void remover(char *nome,int num,int t){
     }
 }*/
 
-void dividir(char *rz,char *f_esq){
+void dividir(char *rz,char *f_esq,int x){
     TNO *raiz = mapear(rz); TNO *filho_esq = mapear(f_esq);
-    int x,y;
+    char f_dir[TAM_NOME_ARQUIVO];
+    criar_nome(f_dir,filho_esq->chaves[t]);
+    int y;
 
-    for (x=0;x<raiz->nChaves;x++){  //inserindo o novo no na raiz
-        if (num<raiz->chaves[x]) break;
-    }
-    for (y=raiz->nChaves-1;y>x;y--){
+    for (y=raiz->nChaves-1;y>x;y--){  //inserindo o novo numero na raiz
         raiz->chaves[y] = raiz->chaves[y-1];
         raiz->filhos[y+1] = raiz->filhos[y];
     }
@@ -198,11 +197,8 @@ void dividir(char *rz,char *f_esq){
     raiz->nChaves++;
     salvar(rz,raiz);
 
-    char f_dir[TAM_NOME_ARQUIVO];  //criando o novo arquivo
-    criar_nome(f_dir);
     criar(f_dir,filho_esq->chaves[t]);
     TNO *filho_dir = mapear(f_dir);
-
     filho_dir->nChaves = t-1;     //dividindo os nos
     filho_dir->folha = filho_esq->folha;
     if (filho_dir->folha){
@@ -244,7 +240,7 @@ void ins_aux (char* nome,int num){
         char direcao[TAM_NOME_ARQUIVO];
         strcpy(direcao,atual->filhos[x]);
         desmapear(atual);
-        dividir(nome,direcao);
+        dividir(nome,direcao,x);
         atual = mapear(nome);
     }
     for (x=0;x<atual->nChaves;x++){
@@ -260,6 +256,7 @@ void inserir (char* nome, int num) {
     TNO* raiz = mapear(nome);
     if (!raiz){
         criar(nome,num);
+        return;
     }
 
     char *p = buscar(nome,num);
@@ -272,7 +269,7 @@ void inserir (char* nome, int num) {
     if (raiz->nChaves == MAX_CHAVES(t)){
         int x;
         char n_raiz[TAM_NOME_ARQUIVO],f_dir[TAM_NOME_ARQUIVO];
-        criar_nome(n_raiz); criar_nome(f_dir);
+        criar_nome(n_raiz,raiz->chaves[t-1]); criar_nome(f_dir,raiz->chaves[t]);
         criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
         TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_dir);
@@ -281,6 +278,7 @@ void inserir (char* nome, int num) {
         nova_raiz->folha=0;
         filho_dir->folha = raiz->folha;
         filho_dir->nChaves = t-1;
+        printf("ola\n");
         if(!raiz->folha){
             for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
@@ -296,7 +294,7 @@ void inserir (char* nome, int num) {
         raiz->nChaves = t-1;
         salvar(n_raiz,nova_raiz); salvar(nome,raiz); salvar(f_dir,filho_dir);
         strcpy(nome,n_raiz);
-        ins_aux(nome,num,t);
+        ins_aux(nome,num);
         return;
     }
     ins_aux(nome,num);
@@ -344,7 +342,7 @@ int main(){
             printf("Digite o numero a ser inserido\n");
             scanf("%d", &num);
             if(num > 0){
-                inserir(nome,num,t);
+                inserir(nome,num);
             }
         }
         else if (op == 2) {
