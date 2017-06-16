@@ -181,6 +181,7 @@ void ins_aux (char* nome,int num,int t){
         }
         atual->chaves[x] = num;
         salvar(nome,atual);
+        return;
     }
     for (x=0;x<atual->nChaves;x++){
         if (num<atual->chaves[x]) break;
