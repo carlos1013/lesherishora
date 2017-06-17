@@ -278,7 +278,6 @@ void inserir (char* nome, int num) {
         nova_raiz->folha=0;
         filho_dir->folha = raiz->folha;
         filho_dir->nChaves = t-1;
-        printf("ola\n");
         if(!raiz->folha){
             for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
