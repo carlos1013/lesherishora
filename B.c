@@ -38,8 +38,8 @@ void criar(char *nome,int num){
 }
 
 void criar_nome(char* nome)  {
-    itoa(nome_count++, nome, 10);
-    strcat(nome, ".dat");
+    itoa(nome_count++,nome,10);
+    strcat(nome,".dat");
 }
 
 void inicializa(char *nome){
@@ -181,6 +181,20 @@ void remover(char *nome,int num,int t){
     }
 }*/
 
+void imprimir_no(TNO *no){
+    int x;
+    printf("folha? %d\n",no->folha);
+    printf("chaves:\n");
+    for (x=0;x<no->nChaves;x++){
+        printf("%d\n",no->chaves[x]);
+    }
+    printf("filhos:\n");
+    for (x=0;x<=no->nChaves;x++){
+        printf("%s\n",no->filhos[x]);
+    }
+    printf("\n");
+}
+
 void dividir(char *rz,char *f_esq,int x){
     TNO *raiz = mapear(rz); TNO *filho_esq = mapear(f_esq);
     char f_dir[TAM_NOME_ARQUIVO];
@@ -189,12 +203,13 @@ void dividir(char *rz,char *f_esq,int x){
 
     for (y=raiz->nChaves;y>x;y--){  //inserindo o novo numero na raiz
         raiz->chaves[y] = raiz->chaves[y-1];
-        raiz->filhos[y+1] = raiz->filhos[y];
+        strcpy(raiz->filhos[y+1],raiz->filhos[y]);
     }
-    raiz->chaves[x] = filho_esq->chaves[t-1];
-    strcpy(raiz->filhos[x],f_esq);
-    strcpy(raiz->filhos[x+1],f_dir);
+    strcpy(raiz->filhos[y+1],raiz->filhos[y]);
     raiz->nChaves++;
+    raiz->chaves[x] = filho_esq->chaves[t-1];
+    //strcpy(raiz->filhos[x],f_esq);
+    strcpy(raiz->filhos[x+1],f_dir);
     salvar(rz,raiz);
 
     criar(f_dir,filho_esq->chaves[t]);
@@ -209,9 +224,9 @@ void dividir(char *rz,char *f_esq,int x){
     else{
         for (x=1;x<filho_dir->nChaves;x++){
             filho_dir->chaves[x] = filho_esq->chaves[x+t];
-            filho_dir->filhos[x] = filho_esq->filhos[x+t];
+            strcpy(filho_dir->filhos[x],filho_esq->filhos[x+t]);
         }
-        filho_dir->filhos[x] = filho_esq->filhos[x+t];
+        strcpy(filho_dir->filhos[x],filho_esq->filhos[x+t]);
     }
     filho_esq->nChaves = t-1;
     salvar(f_esq,filho_esq); salvar(f_dir,filho_dir);
@@ -276,17 +291,17 @@ void inserir (char* nome, int num) {
         criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
         TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_dir);
-        nova_raiz->filhos[0]=nome;
-        nova_raiz->filhos[1]=f_dir;
+        strcpy(nova_raiz->filhos[0],nome);
+        strcpy(nova_raiz->filhos[1],f_dir);
         nova_raiz->folha=0;
         filho_dir->folha = raiz->folha;
         filho_dir->nChaves = t-1;
         if(!raiz->folha){
             for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
-                filho_dir->filhos[x] = raiz->filhos[x+t];
+                strcpy(filho_dir->filhos[x],raiz->filhos[x+t]);
             }
-            filho_dir->filhos[x] = raiz->filhos[x+t];
+            strcpy(filho_dir->filhos[x],raiz->filhos[x+t]);
         }
         else{
             for (x=1;x<t-1;x++){
