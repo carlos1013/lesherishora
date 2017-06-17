@@ -182,7 +182,7 @@ void dividir(char *rz,char *f_esq,int x){
     criar_nome(f_dir,filho_esq->chaves[t]);
     int y;
 
-    for (y=raiz->nChaves-1;y>x;y--){  //inserindo o novo numero na raiz
+    for (y=raiz->nChaves;y>x;y--){  //inserindo o novo numero na raiz
         raiz->chaves[y] = raiz->chaves[y-1];
         raiz->filhos[y+1] = raiz->filhos[y];
     }
@@ -231,9 +231,11 @@ void ins_aux (char* nome,int num){
     for (x=0;x<atual->nChaves;x++){
         if (num<atual->chaves[x]) break;
     }
-    if (atual->chaves[x] == MAX_CHAVES(t)){
+    TNO* f = mapear(atual->filhos[x]);
+    if (f->nChaves == MAX_CHAVES(t)){
         char direcao[TAM_NOME_ARQUIVO];
         strcpy(direcao,atual->filhos[x]);
+        desmapear(f);
         desmapear(atual);
         dividir(nome,direcao,x);
         atual = mapear(nome);
@@ -243,6 +245,7 @@ void ins_aux (char* nome,int num){
     }
     char direcao[TAM_NOME_ARQUIVO];
     strcpy(direcao,atual->filhos[x]);
+    desmapear(f);
     desmapear(atual);
     inserir(direcao,num);
 }
