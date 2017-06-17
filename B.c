@@ -73,17 +73,14 @@ TNO* mapear (char* nome) {
 
     int iNomeFilhos = sizeof(int)*(1 + novo->nChaves);
     fseek(arq, 0, SEEK_END);
-    if (iNomeFilhos == ftell(arq)) {
-        novo->folha = 1;
-        return novo;
-    }
-    novo->folha = 0;
+    novo->folha = iNomeFilhos == ftell(arq);
+
     fseek(arq, iNomeFilhos, SEEK_SET);
     novo->filhos = (char**)malloc(MAX_FILHOS(t)*sizeof(char*));
     int i;
     for(i=0; i< MAX_FILHOS(t); i++) {
         novo->filhos[i] = (char*)malloc(sizeof(char)*TAM_NOME_ARQUIVO);
-        if (i<= novo->nChaves){
+        if (!novo->folha && i<= novo->nChaves){
             fread(novo->filhos[i], sizeof(char)*TAM_NOME_ARQUIVO, 1, arq);
         }
     }
