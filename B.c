@@ -114,11 +114,16 @@ void salvar(char* nome,TNO *no){
 }
 
 void liberar(char *nome){
-    printf("liberando arquivo: %s\n",nome);
     FILE *fp = fopen(nome,"rb");
     if (!fp) exit(1);
     int n_chaves,r,x=0;
-    fread(&n_chaves,sizeof(int),1,fp);
+    r = fread(&n_chaves,sizeof(int),1,fp);
+    if (r==0){
+        fclose(fp);
+        remove(nome);
+        return;
+    }
+
     char filhos[n_chaves+1][TAM_NOME_ARQUIVO];
     fseek(fp,sizeof(int)+(n_chaves*sizeof(int)),SEEK_SET);
     while(1){
@@ -322,6 +327,7 @@ void inserir (char* nome, int num) {
 
 void imprimir(char *nome, int n){
     TNO* no = mapear(nome);
+    if (!no) return;
     int i, j, nChaves;
     nChaves = no->nChaves;
     for (j = n; j > 0; j--) printf("  |");
@@ -388,11 +394,15 @@ int main(){
         else if (op == 4) imprimir(nome,0);
 
         else if (op == 0){
+            printf("raiz atual: %s",nome);
             liberar(nome);
             return 0;
         }
 
-        else if (op == -1) return 0;
+        else if (op == -1) {
+            printf("raiz atual: %s",nome);
+            return 0;
+        }
 
         else printf("Operacao invalida\n");
 
