@@ -224,9 +224,10 @@ void dividir(char *rz,char *f_esq,int x){
     else{
         for (x=1;x<filho_dir->nChaves;x++){
             filho_dir->chaves[x] = filho_esq->chaves[x+t];
+        }
+        for (x=0;x<=filho_dir->nChaves;x++){
             strcpy(filho_dir->filhos[x],filho_esq->filhos[x+t]);
         }
-        strcpy(filho_dir->filhos[x],filho_esq->filhos[x+t]);
     }
     filho_esq->nChaves = t-1;
     salvar(f_esq,filho_esq); salvar(f_dir,filho_dir);
@@ -299,9 +300,10 @@ void inserir (char* nome, int num) {
         if(!raiz->folha){
             for (x=1;x<t-1;x++){
                 filho_dir->chaves[x] = raiz->chaves[x+t];
+            }
+            for (x=0;x<=t-1;x++){
                 strcpy(filho_dir->filhos[x],raiz->filhos[x+t]);
             }
-            strcpy(filho_dir->filhos[x],raiz->filhos[x+t]);
         }
         else{
             for (x=1;x<t-1;x++){
