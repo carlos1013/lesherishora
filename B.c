@@ -70,6 +70,7 @@ TNO* mapear (char* nome) {
     if (!r){
         free(novo->chaves);
         free(novo);
+        fclose(arq);
         return NULL;
     }
 
@@ -147,18 +148,21 @@ char *buscar (char *nome,int num){
         if (chaveAtual == num) {
             char *n = (char *) malloc(sizeof(char)*TAM_NOME_ARQUIVO);
             strcpy(n,nome);
+            fclose(arq);
             return n;
         }
     }
     int iNomeFilhos = sizeof(int)*(1 + nChaves);
     fseek(arq, 0, SEEK_END);
-    if (iNomeFilhos == ftell(arq)) return NULL;
+    if (iNomeFilhos == ftell(arq)) {
+        fclose(arq);
+        return NULL;
+    }
 
     fseek(arq, iNomeFilhos + i*sizeof(char)*TAM_NOME_ARQUIVO, SEEK_SET);
 
     char n[TAM_NOME_ARQUIVO];
     fread(n, sizeof(char), TAM_NOME_ARQUIVO, arq);
-
     fclose(arq);
     return buscar(n,num);
 }
@@ -321,7 +325,7 @@ void imprimir(char *nome, int n){
 }
 
 int main(){
-    nome_count = 0;
+    nome_count = 2;
     char nome[TAM_NOME_ARQUIVO];
     int op,num;
     printf("Insira o t da arvore:\n");
