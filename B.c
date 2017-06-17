@@ -59,6 +59,7 @@ TNO* mapear (char* nome) {
     r = fread(&novo->nChaves, sizeof(int), 1, arq);
     if (!r){
         free(novo);
+        fclose(arq);
         return NULL;
     }
 
@@ -89,12 +90,9 @@ TNO* mapear (char* nome) {
 }
 
 void desmapear(TNO *no){
-    if (!no->folha){
-        int i;
-        for(i=0; i < MAX_FILHOS(t); i++)
-            free(no->filhos[i]);
-        free(no->filhos);
-    }
+    int i;
+    for(i=0; i < MAX_FILHOS(t); i++) free(no->filhos[i]);
+    free(no->filhos);
     free(no->chaves);
     free(no);
 }
