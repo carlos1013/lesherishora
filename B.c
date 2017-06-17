@@ -167,19 +167,151 @@ char *buscar (char *nome,int num){
     return buscar(n,num);
 }
 
-/*void remocao(char *nome,int num,int t){
-    TNO *atual = mapear(nome);
 
+char* remocao(char *nome,int num,int t){
+    TNO *atual = mapear(nome);
+    int i, j;
+    for(i = 0; i<atual->nChaves && atual->chaves[i] < num; i++);// encontrar o lugar da chave
+    if(i < atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
+        if(atual->folha) { // caso 1
+            atual->nChaves--;
+            for(j=i; j<atual->nChaves; j++) // reorganiza as chaves
+                atual->chaves[j] = atual->chaves[j+1];
+            salvar(nome, atual);
+            return nome;
+        }
+        else {
+            char e[TAM_NOME_ARQUIVO];
+            strcpy(e, atual->filhos[i]);
+            //caso 2A
+            TNO *filho_esq = mapear(e);
+            if(filho_esq->nChaves >= t) {
+                while(!filho_esq->folha) { // a partir do filho a esquerda, pega o filho mais a direita do fim da arvore
+                    strcpy(e, filho_esq->filhos[filho_esq->nChaves]);
+                    desmapear(filho_esq);
+                    filho_esq = mapear(e);
+                }
+                int temp = filho_esq->chaves[filho_esq->nChaves - 1];
+                desmapear(filho_esq);
+                desmapear(atual);
+
+                strcpy(e, remocao(e, temp, t));
+
+                atual = mapear(nome);
+                atual->chaves[i] = temp;
+                strcpy(atual->filhos[i], e);
+                salvar(nome, atual);
+                return nome;
+            }
+            else {
+                desmapear(filho_esq);
+                char d[TAM_NOME_ARQUIVO];
+                strcpy(d, atual->filhos[i+1]);
+                //caso 2b
+                TNO* filho_dir = mapear(d);
+
+                if(filho_dir->nChaves >= t) {
+                    while(!filho_dir->folha) { // a partir do filho a direita, pega o filho mais a esquerda do fim da arvore
+                        strcpy(d, filho_dir->filhos[0]);
+                        desmapear(filho_dir);
+                        filho_dir = mapear(d);
+                    }
+                    int temp = filho_dir->chaves[0];
+                    desmapear(filho_dir);
+                    desmapear(atual);
+
+                    strcpy(d, remocao(d, temp, t));
+
+                    atual = mapear(nome);
+                    atual->chaves[i] = temp;
+                    strcpy(atual->filhos[i+1], d);
+                    salvar(nome, atual);
+                    return nome;
+                }
+                else {
+                    desmapear(atual);// tentando trabalhar apenas com 2  nós...
+                    //caso 2c
+                    filho_esq = mapear(e);
+                    if(filho_esq->nChaves == t-1 && filho_dir->nChaves == t-1) {
+                        filho_esq->chaves[filho_esq->nChaves] = num;
+                        for(j=0; j<t-1; j++)
+                            filho_esq->chaves[j+t] = filho_dir->chaves[j];
+                        for(j=0; j<=t; j++)
+                                filho_esq->filhos[j+t] = filho_dir->filhos[j];
+                        filho_esq->nChaves = MAX_CHAVES(t);
+
+                        salvar(e, filho_esq);
+                        if(filho_dir->folha)
+                            remove(d);
+                        desmapear(filho_dir);
+
+                        strcpy(e, remocao(e, num, t));
+                        atual = mapear(nome);
+                        // da erro se a arvore tiver apenas dois niveis e a raiz tiver apenas uma chave. segue a gambiarra:
+                        if (atual->nChaves == 1) { // acho que so acontece na raiz...
+                            salvar(nome, mapear(e));// salva na raiz o filho da esquerda
+                            remove(e); // remove o filho da esquerda da face da terra
+                            desmapear(atual);
+                            return nome;
+                        }
+                        atual->nChaves--;
+                        for(j=i; j < atual->nChaves; j++)
+                            atual->chaves[j] = atual->chaves[j+1];
+                        for(j=i+1; j <= atual->nChaves; j++)
+                            strcpy(atual->filhos[j], atual->filhos[j+1]);
+                        strcpy(atual->filhos[i], e);
+                        salvar(nome, atual);
+                        return nome;
+                    }
+                }
+            }
+        }
+    }
+
+    char e[TAM_NOME_ARQUIVO];
+    strcpy(e, atual->filhos[i]);
+    TNO* fi = mapear(e); // filho q pode conter a chave...
+    if (fi->nChaves == t-1) { // caso 3a e 3b
+        if(i < atual->nChaves) {
+            TNO* fib = mapear(atual->filhos[i+1]); // irmao imediato a direita do filho i
+            if(fib->nChaves >= t) { // se irmao imediato do filho i tem pelo menos t chaves... 3A :)
+                fi->chaves[t - 1] = atual->chaves[i]; // a ultima chave do filho i sera a cave  i do no atual
+                fi->nChaves++;
+
+                atual->chaves[i] = fib->chaves[0]; // substituir a chave i do no atual pela primeira chave do irmao
+                for(j=0; j<fib->nChaves; j++)
+                    fib->chaves[j] = fib->chaves[j+1]; // reorganizar as chaves do irmao
+
+                fi->filhos[fi->nChaves] = fib->filhos[0]; // o ultimo filho do no i sera o primeiro filho do seu irmao (risos)
+                for(j=0; j<fib->nChaves; j++)
+                    strcpy(fib->filhos[j], fib->filhos[j+1]);
+                fib->nChaves--;
+
+                salvar(e, fi);
+                salvar(atual->filhos[i+1], fib);
+                salvar(nome, atual);
+
+                strcpy(e, remocao(e, num, t));
+                atual = mapear(nome);
+                strcpy(atual->filhos[i], e);
+                salvar(nome, atual);
+                return nome;
+            }
+            desmapear(fib);
+        }
+    }
 }
 
-
-void remover(char *nome,int num,int t){
+char* remover(char *nome,int num,int t){
     char *b = buscar(nome,num);
     if (b) {
-        remocao(nome,num,t);
         free(b);
+        return remocao(nome,num,t);
     }
-}*/
+    free(b);
+    return nome;
+}
+
 
 void imprimir_no(TNO *no){
     int x;
