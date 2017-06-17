@@ -173,15 +173,16 @@ char *buscar (char *nome,int num){
 }
 
 
-char* remocao(char *nome,int num,int t){
+char* remocao(char *nome,int num){
     TNO *atual = mapear(nome);
     int i, j;
     for(i = 0; i<atual->nChaves && atual->chaves[i] < num; i++);// encontrar o lugar da chave
     if(i < atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
         if(atual->folha) { // caso 1
             atual->nChaves--;
-            for(j=i; j<atual->nChaves; j++) // reorganiza as chaves
+            for(j=i; j<atual->nChaves; j++){               // reorganiza as chaves
                 atual->chaves[j] = atual->chaves[j+1];
+            }
             salvar(nome, atual);
             return nome;
         }
@@ -200,7 +201,7 @@ char* remocao(char *nome,int num,int t){
                 desmapear(filho_esq);
                 desmapear(atual);
 
-                strcpy(e, remocao(e, temp, t));
+                strcpy(e, remocao(e, temp));
 
                 atual = mapear(nome);
                 atual->chaves[i] = temp;
@@ -225,7 +226,7 @@ char* remocao(char *nome,int num,int t){
                     desmapear(filho_dir);
                     desmapear(atual);
 
-                    strcpy(d, remocao(d, temp, t));
+                    strcpy(d, remocao(d, temp));
 
                     atual = mapear(nome);
                     atual->chaves[i] = temp;
@@ -250,10 +251,10 @@ char* remocao(char *nome,int num,int t){
                             remove(d);
                         desmapear(filho_dir);
 
-                        strcpy(e, remocao(e, num, t));
+                        strcpy(e, remocao(e, num));
                         atual = mapear(nome);
                         // da erro se a arvore tiver apenas dois niveis e a raiz tiver apenas uma chave. segue a gambiarra:
-                        if (atual->nChaves == 1) { // acho que so acontece na raiz...
+                        if (atual->nChaves == 1) { // tenho certeza que so acontece na raiz...
                             salvar(nome, mapear(e));// salva na raiz o filho da esquerda
                             remove(e); // remove o filho da esquerda da face da terra
                             desmapear(atual);
@@ -296,7 +297,7 @@ char* remocao(char *nome,int num,int t){
                 salvar(atual->filhos[i+1], fib);
                 salvar(nome, atual);
 
-                strcpy(e, remocao(e, num, t));
+                strcpy(e, remocao(e, num));
                 atual = mapear(nome);
                 strcpy(atual->filhos[i], e);
                 salvar(nome, atual);
@@ -307,14 +308,14 @@ char* remocao(char *nome,int num,int t){
     }
 }
 
-char* remover(char *nome,int num,int t){
+void remover(char *nome,int num){
     char *b = buscar(nome,num);
     if (b) {
         free(b);
-        return remocao(nome,num,t);
+        return;
     }
     free(b);
-    return nome;
+    return;
 }
 
 
@@ -506,8 +507,9 @@ int main(){
         else if (op == 2) {
             printf("Digite o numero a ser removido\n");
             scanf("%d", &num);
-            if(num > 0) {int beta = 0;}
-                //remover(nome,num,t);
+            if(num > 0) {
+                remover(nome,num);
+            }
         }
         else if (op == 3) {
             printf("Digite o valor a ser buscado:\n");
