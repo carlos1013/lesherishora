@@ -14,7 +14,7 @@ typedef struct no{
 }TNO;
 
 void criar(char *nome,int num);
-void criar_nome(char* nome, int i);
+void criar_nome(char* nome);
 void inicializa(char *nome);
 TNO *mapear(char* nome);
 void desmapear(TNO *no);
@@ -26,6 +26,7 @@ void inserir (char* nome, int num);
 void imprimir(char *nome, int n);
 
 int t;
+int nome_count;
 
 void criar(char *nome,int num){
     FILE *fp = fopen(nome,"wb");
@@ -36,8 +37,8 @@ void criar(char *nome,int num){
     fclose(fp);
 }
 
-void criar_nome(char* nome, int i)  {
-    itoa(i, nome, 10);
+void criar_nome(char* nome)  {
+    itoa(nome_count++, nome, 10);
     strcat(nome, ".dat");
 }
 
@@ -179,7 +180,7 @@ void remover(char *nome,int num,int t){
 void dividir(char *rz,char *f_esq,int x){
     TNO *raiz = mapear(rz); TNO *filho_esq = mapear(f_esq);
     char f_dir[TAM_NOME_ARQUIVO];
-    criar_nome(f_dir,filho_esq->chaves[t]);
+    criar_nome(f_dir);
     int y;
 
     for (y=raiz->nChaves;y>x;y--){  //inserindo o novo numero na raiz
@@ -267,7 +268,7 @@ void inserir (char* nome, int num) {
     if (raiz->nChaves == MAX_CHAVES(t)){
         int x;
         char n_raiz[TAM_NOME_ARQUIVO],f_dir[TAM_NOME_ARQUIVO];
-        criar_nome(n_raiz,raiz->chaves[t-1]); criar_nome(f_dir,raiz->chaves[t]);
+        criar_nome(n_raiz); criar_nome(f_dir);
         criar(n_raiz,raiz->chaves[t-1]); criar(f_dir,raiz->chaves[t]);
 
         TNO *nova_raiz = mapear(n_raiz); TNO *filho_dir = mapear(f_dir);
@@ -320,6 +321,7 @@ void imprimir(char *nome, int n){
 }
 
 int main(){
+    nome_count = 0;
     char nome[TAM_NOME_ARQUIVO];
     int op,num;
     printf("Insira o t da arvore:\n");
