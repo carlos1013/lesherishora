@@ -170,6 +170,7 @@ char *buscar (char *nome,int num){
 
 char* remocao(char *nome,int num){
     TNO *atual = mapear(nome);
+    printf("tentando remover %d no arquivo %s\n", num, nome);
     int i, j;
     for(i = 0; i<atual->nChaves && atual->chaves[i] < num; i++);// encontrar o lugar da chave
     if(i < atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
@@ -191,15 +192,20 @@ char* remocao(char *nome,int num){
                     filho_esq = mapear(e);
                 }
                 int temp = filho_esq->chaves[filho_esq->nChaves - 1];
+                atual->chaves[i] = temp;
+                salvar(nome, atual);
+
                 desmapear(filho_esq);
-                desmapear(atual);
+                remocao(e, temp);
+
+                /* esta caralha fazia uma merda colossal pq substituia o filho pelo seu filho UAU!!!
 
                 strcpy(e, remocao(e, temp));
-
                 atual = mapear(nome);
-                atual->chaves[i] = temp;
                 strcpy(atual->filhos[i], e);
+                strcpy(filho_esq->filhos[i], e);
                 salvar(nome, atual);
+                */
                 return nome;
             }
             else {
@@ -214,16 +220,19 @@ char* remocao(char *nome,int num){
                         desmapear(filho_dir);
                         filho_dir = mapear(d);
                     }
-                    int temp = filho_dir->chaves[0];
-                    desmapear(filho_dir);
-                    desmapear(atual);
 
-                    strcpy(d, remocao(d, temp));
+                    int temp = filho_dir->chaves[0];
+                    atual->chaves[i] = temp;
+                    salvar(nome, atual);
+
+                    desmapear(filho_dir);
+                    remocao(d, temp);
+
+                    /*strcpy(d, remocao(d, temp));
 
                     atual = mapear(nome);
-                    atual->chaves[i] = temp;
                     strcpy(atual->filhos[i+1], d);
-                    salvar(nome, atual);
+                    salvar(nome, atual);*/
                     return nome;
                 }
                 else {
@@ -282,7 +291,7 @@ char* remocao(char *nome,int num){
                 for(j=0; j<fib->nChaves; j++)
                     fib->chaves[j] = fib->chaves[j+1]; // reorganizar as chaves do irmao
 
-                fi->filhos[fi->nChaves] = fib->filhos[0]; // o ultimo filho do no i sera o primeiro filho do seu irmao (risos)
+                strcpy(fi->filhos[fi->nChaves], fib->filhos[0]); // o ultimo filho do no i sera o primeiro filho do seu irmao (risos)
                 for(j=0; j<fib->nChaves; j++)
                     strcpy(fib->filhos[j], fib->filhos[j+1]);
                 fib->nChaves--;
