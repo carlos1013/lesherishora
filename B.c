@@ -175,6 +175,7 @@ char *buscar (char *nome,int num){
 
 char* remocao(char *nome,int num){
     TNO *atual = mapear(nome);
+    printf("tentando remover %d no arquivo %s\n", num, nome);
     int i, j;
     for(i = 0; i<atual->nChaves && atual->chaves[i] < num; i++);// encontrar o lugar da chave
     if(i < atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
@@ -189,61 +190,68 @@ char* remocao(char *nome,int num){
         else {
             char e[TAM_NOME_ARQUIVO];
             strcpy(e, atual->filhos[i]);
-            //caso 2A
             TNO *filho_esq = mapear(e);
-            if(filho_esq->nChaves >= t) {
+            if(filho_esq->nChaves >= t) { //caso 2A
                 while(!filho_esq->folha) { // a partir do filho a esquerda, pega o filho mais a direita do fim da arvore
                     strcpy(e, filho_esq->filhos[filho_esq->nChaves]);
                     desmapear(filho_esq);
                     filho_esq = mapear(e);
                 }
                 int temp = filho_esq->chaves[filho_esq->nChaves - 1];
+                atual->chaves[i] = temp;
+                salvar(nome, atual);
+
                 desmapear(filho_esq);
-                desmapear(atual);
+                remocao(e, temp);
+
+                /* esta caralha fazia uma merda colossal pq substituia o filho pelo seu filho UAU!!!
 
                 strcpy(e, remocao(e, temp));
-
                 atual = mapear(nome);
-                atual->chaves[i] = temp;
                 strcpy(atual->filhos[i], e);
+                strcpy(filho_esq->filhos[i], e);
                 salvar(nome, atual);
+                */
                 return nome;
             }
             else {
                 desmapear(filho_esq);
                 char d[TAM_NOME_ARQUIVO];
                 strcpy(d, atual->filhos[i+1]);
-                //caso 2b
                 TNO* filho_dir = mapear(d);
 
-                if(filho_dir->nChaves >= t) {
+                if(filho_dir->nChaves >= t) {//caso 2b
                     while(!filho_dir->folha) { // a partir do filho a direita, pega o filho mais a esquerda do fim da arvore
                         strcpy(d, filho_dir->filhos[0]);
                         desmapear(filho_dir);
                         filho_dir = mapear(d);
                     }
-                    int temp = filho_dir->chaves[0];
-                    desmapear(filho_dir);
-                    desmapear(atual);
 
-                    strcpy(d, remocao(d, temp));
+                    int temp = filho_dir->chaves[0];
+                    atual->chaves[i] = temp;
+                    salvar(nome, atual);
+
+                    desmapear(filho_dir);
+                    remocao(d, temp);
+
+                    /*strcpy(d, remocao(d, temp));
 
                     atual = mapear(nome);
-                    atual->chaves[i] = temp;
                     strcpy(atual->filhos[i+1], d);
-                    salvar(nome, atual);
+                    salvar(nome, atual);*/
                     return nome;
                 }
                 else {
                     desmapear(atual);// tentando trabalhar apenas com 2  nós...
-                    //caso 2c
                     filho_esq = mapear(e);
-                    if(filho_esq->nChaves == t-1 && filho_dir->nChaves == t-1) {
+                    if(filho_esq->nChaves == t-1 && filho_dir->nChaves == t-1) {//caso 2c
                         filho_esq->chaves[filho_esq->nChaves] = num;
                         for(j=0; j<t-1; j++)
                             filho_esq->chaves[j+t] = filho_dir->chaves[j];
-                        for(j=0; j<=t; j++)
-                                filho_esq->filhos[j+t] = filho_dir->filhos[j];
+                        if(!filho_esq->folha) {
+                            for(j=0; j<=t; j++)
+                                strcpy(filho_esq->filhos[j+t], filho_dir->filhos[j]);
+                        }
                         filho_esq->nChaves = MAX_CHAVES(t);
 
                         salvar(e, filho_esq);
@@ -267,6 +275,7 @@ char* remocao(char *nome,int num){
                             strcpy(atual->filhos[j], atual->filhos[j+1]);
                         strcpy(atual->filhos[i], e);
                         salvar(nome, atual);
+
                         return nome;
                     }
                 }
@@ -277,7 +286,7 @@ char* remocao(char *nome,int num){
     char e[TAM_NOME_ARQUIVO];
     strcpy(e, atual->filhos[i]);
     TNO* fi = mapear(e); // filho q pode conter a chave...
-    if (fi->nChaves == t-1) { // caso 3a e 3b
+    if (fi->nChaves == t-1) { printf("caso 3x num = %d", num);// caso 3a e 3b
         if(i < atual->nChaves) {
             TNO* fib = mapear(atual->filhos[i+1]); // irmao imediato a direita do filho i
             if(fib->nChaves >= t) { // se irmao imediato do filho i tem pelo menos t chaves... 3A :)
@@ -288,7 +297,7 @@ char* remocao(char *nome,int num){
                 for(j=0; j<fib->nChaves; j++)
                     fib->chaves[j] = fib->chaves[j+1]; // reorganizar as chaves do irmao
 
-                fi->filhos[fi->nChaves] = fib->filhos[0]; // o ultimo filho do no i sera o primeiro filho do seu irmao (risos)
+                strcpy(fi->filhos[fi->nChaves], fib->filhos[0]); // o ultimo filho do no i sera o primeiro filho do seu irmao (risos)
                 for(j=0; j<fib->nChaves; j++)
                     strcpy(fib->filhos[j], fib->filhos[j+1]);
                 fib->nChaves--;
@@ -307,7 +316,9 @@ char* remocao(char *nome,int num){
         }
     }
 
+
     desmapear(atual);
+    desmapear(fi);
     strcpy(e, remocao(e, num));
     atual = mapear(nome);
     strcpy(atual->filhos[i], e);
@@ -319,10 +330,8 @@ void remover(char *nome,int num){
     char *b = buscar(nome,num);
     if (b) {
         free(b);
-        return;
+        remocao(nome,num);
     }
-    free(b);
-    return;
 }
 
 void imprimir_no(TNO *no){
@@ -344,7 +353,6 @@ void dividir(char *rz,char *f_esq,int x){
     char f_dir[TAM_NOME_ARQUIVO];
     criar_nome(f_dir);
     int y;
-
     for (y=raiz->nChaves;y>x;y--){  //inserindo o novo numero na raiz
         raiz->chaves[y] = raiz->chaves[y-1];
         strcpy(raiz->filhos[y+1],raiz->filhos[y]);
@@ -397,10 +405,11 @@ void ins_aux (char* nome,int num){
         if (num<atual->chaves[x]) break;
     }
     TNO* f = mapear(atual->filhos[x]);
-    if (f->nChaves == MAX_CHAVES(t)){
+    int nChaves_f = f->nChaves;
+    desmapear(f);
+    if (nChaves_f == MAX_CHAVES(t)){
         char direcao[TAM_NOME_ARQUIVO];
         strcpy(direcao,atual->filhos[x]);
-        desmapear(f);
         desmapear(atual);
         dividir(nome,direcao,x);
         atual = mapear(nome);
@@ -410,7 +419,6 @@ void ins_aux (char* nome,int num){
     }
     char direcao[TAM_NOME_ARQUIVO];
     strcpy(direcao,atual->filhos[x]);
-    desmapear(f);
     desmapear(atual);
     inserir(direcao,num);
 }
@@ -513,11 +521,9 @@ int main(){
         else if (op == 2) {
             printf("Digite o numero a ser removido\n");
             scanf("%d", &num);
-
             if(num > 0) {
                 remover(nome,num);
             }
-
         }
         else if (op == 3) {
             printf("Digite o valor a ser buscado:\n");
