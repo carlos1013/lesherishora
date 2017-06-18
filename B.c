@@ -38,8 +38,7 @@ void criar(char *nome,int num){
 }
 
 void criar_nome(char* nome)  {
-    itoa(nome_count++,nome,10);
-    strcat(nome,".dat");
+    if (sprintf(nome, "%d.dat", nome_count++) == -1) printf("erro ao tentar criar nome\n");
 }
 
 void inicializa(char *nome){
