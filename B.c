@@ -205,8 +205,6 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
     irmao_esq->nChaves--;
 }
 
-
-
 void remocao(char *nome,int num){
     TNO *atual = mapear(nome);
     printf("tentando remover %d no arquivo %s\n", num, nome);
@@ -273,7 +271,7 @@ void remocao(char *nome,int num){
                 salvar(nome,filho_esq);            // salva na raiz o filho da esquerda
                 remove(atual->filhos[i]);                // remove o filho da esquerda da face da terra
                 desmapear(atual);
-                return;
+                return remocao(nome,num);
             }
             salvar(atual->filhos[i],filho_esq);
             atual->nChaves--;
@@ -310,27 +308,71 @@ void remocao(char *nome,int num){
             }
             desmapear(irmao_esq);
         }
-        TNO* irmao_dir = mapear(atual->filhos[i+1]);
-        caminho->chaves[caminho->nChaves] = atual->chaves[i];
-        for(j=0; j<irmao_dir->nChaves; j++) // juntar as chaves do irmao
-            caminho->chaves[j+t] = irmao_dir->chaves[j];
-        caminho->nChaves = MAX_CHAVES(t);
-        for(j=0; j<irmao_dir->nChaves+1; j++) // receber os  filhos do irmao
-            strcpy(caminho->filhos[j+t], irmao_dir->filhos[j]);
-        remove(atual->filhos[i+1]);
-        desmapear(irmao_dir);
-        salvar(atual->filhos[i],caminho);
-        // reorganizar as chaves do meu no atual
-        atual->nChaves--;
-        for(j=i; j<atual->nChaves; j++)
-            atual->nChaves[j] = atual->nChaves[j+1];
-        // a partir do irmao do caminho, reorganizar os filhos
-        for(j=i+1; j =< atual->nChaves; j++)
-            strcpy(atual->filhos[j], atual->filhos[j+1]);
+        if (i>0){
+            TNO* irmao_dir = mapear(atual->filhos[i+1]);
+            if (irmao_dir->nChaves == t-1){
+                caminho->chaves[caminho->nChaves] = atual->chaves[i];
+                for(j=0; j<irmao_dir->nChaves; j++)
+                    caminho->chaves[j+t] = irmao_dir->chaves[j];
+                if (!irmao_dir->folha){
+                    for(j=0; j<irmao_dir->nChaves+1; j++)
+                        strcpy(caminho->filhos[j+t], irmao_dir->filhos[j]);
+                }
+                caminho->nChaves = MAX_CHAVES(t);
+                remove(atual->filhos[i+1]);
+                desmapear(irmao_dir);
+                if (atual->nChaves==1){
+                    salvar(nome,filho_esq);
+                    remove(atual->filhos[i]);
+                    desmapear(atual);
+                    return nome;
+                }
+                atual->nChaves--;
+                for(j=i; j<atual->nChaves; j++)
+                    atual->chaves[j] = atual->chaves[j+1];
 
-        strcpy(e, atual->filhos[i]);
-        salvar(nome,atual);
-        remocao(e, num);
+                for(j=i+1; j <= atual->nChaves; j++)
+                    strcpy(atual->filhos[j], atual->filhos[j+1]);
+
+                strcpy(e,atual->filhos[i]);
+                salvar(nome,atual);  salvar(atual->filhos[i],caminho);
+                return remocao(e,num);
+            }
+            desmapear(irmao_dir);
+        }
+
+        if (i<atual->nChaves){
+            TNO *irmao_esq = mapear(atual->filhos[i]);
+            if (irmao_esq->nChaves == t-1) {
+                irmao_esq->chaves[irmao_esq->nChaves] = atual->chaves[i];
+                for(j=0; j<caminho->nChaves; j++)
+                    irmao_esq->chaves[j+t] = caminho->chaves[j];
+                if (!caminho->folha){
+                    for(j=0; j<caminho->nChaves+1; j++)
+                        strcpy(irmao_esq->filhos[j+t],caminho->filhos[j]);
+                }
+                irmao_esq->nChaves = MAX_CHAVES(t);
+                remove(atual->filhos[i]);
+                desmapear(caminho);
+                if (atual->nChaves==1){
+                    salvar(nome,filho_esq);
+                    remove(atual->filhos[i]);
+                    desmapear(atual);
+                    return remocao(nome,num);
+                }
+                salvar(atual->filhos[i-1],filho_esq);
+                atual->nChaves--;
+                for(j=i; j<atual->nChaves; j++)
+                    atual->chaves[j] = atual->chaves[j+1];
+
+                for(j=i; j <= atual->nChaves; j++)
+                    strcpy(atual->filhos[j], atual->filhos[j+1]);
+                strcpy(e,atual->filhos[i-1]);
+                salvar(nome,atual);  salvar(atual->filhos[i-1],irmao_esq);
+                return remocao(e,num);
+            }
+            desmapear(irmao_esq);
+        }
     }
     strcpy(e,atual->filhos[i]);
     desmapear(atual);
