@@ -310,6 +310,27 @@ void remocao(char *nome,int num){
             }
             desmapear(irmao_esq);
         }
+        TNO* irmao_dir = mapear(atual->filhos[i+1]);
+        caminho->chaves[caminho->nChaves] = atual->chaves[i];
+        for(j=0; j<irmao_dir->nChaves; j++) // juntar as chaves do irmao
+            caminho->chaves[j+t] = irmao_dir->chaves[j];
+        caminho->nChaves = MAX_CHAVES(t);
+        for(j=0; j<irmao_dir->nChaves+1; j++) // receber os  filhos do irmao
+            strcpy(caminho->filhos[j+t], irmao_dir->filhos[j]);
+        remove(atual->filhos[i+1]);
+        desmapear(irmao_dir);
+        salvar(atual->filhos[i],caminho);
+        // reorganizar as chaves do meu no atual
+        atual->nChaves--;
+        for(j=i; j<atual->nChaves; j++)
+            atual->nChaves[j] = atual->nChaves[j+1];
+        // a partir do irmao do caminho, reorganizar os filhos
+        for(j=i+1; j =< atual->nChaves; j++)
+            strcpy(atual->filhos[j], atual->filhos[j+1]);
+
+        strcpy(e, atual->filhos[i]);
+        salvar(nome,atual);
+        remocao(e, num);
     }
     strcpy(e,atual->filhos[i]);
     desmapear(atual);
