@@ -1,0 +1,9 @@
+#################
+## lesherishora
+#################
+
+# Arquivos de compilação
+*.exe
+*.o
+# Arquivos gerados pelo programa
+*.dat

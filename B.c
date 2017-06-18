@@ -38,8 +38,7 @@ void criar(char *nome,int num){
 }
 
 void criar_nome(char* nome)  {
-    itoa(nome_count++,nome,10);
-    strcat(nome,".dat");
+    if (sprintf(nome, "%d.dat", nome_count++) == -1) printf("erro ao tentar criar nome\n");
 }
 
 void inicializa(char *nome){
@@ -183,11 +182,10 @@ void caso_3a_irm_dir(TNO *atual,TNO *caminho,TNO *irmao_dir,int i){
     }
     if(!irmao_dir->folha){
         for (j=0;j<irmao_dir->nChaves;j++){
-            strcpy(irmao_dir->filhos[y],irmao_dir->filhos[y+1]);
+            strcpy(irmao_dir->filhos[j],irmao_dir->filhos[j+1]);
         }
     }
     irmao_dir->nChaves--;
-    salvar(irmao_dir);  salvar(caminho);  salvar(atual);
 }
 
 void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
@@ -197,7 +195,7 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
     }
     if (!caminho->folha){
         for (j=caminho->nChaves+1;j<0;j--){
-            strcpy(caminho->filhos[y],caminho->filhos[j-1]);
+            strcpy(caminho->filhos[j],caminho->filhos[j-1]);
         }
     }
     caminho->chaves[0] = atual->chaves[i];
@@ -205,7 +203,6 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
     caminho->nChaves++;
     atual->chaves[i] = irmao_esq->chaves[irmao_esq->nChaves-1];
     irmao_esq->nChaves--;
-    salvar (atual); salvar(irmao_esq); salvar(caminho);
 }
 
 
@@ -300,7 +297,6 @@ char* remocao(char *nome,int num){
             return nome;
         }
     }
-    char e[TAM_NOME_ARQUIVO];
     strcpy(e, atual->filhos[i]);
     TNO* caminho = mapear(e); // filho q pode conter a chave...
     if (caminho->nChaves == t-1) {
@@ -309,6 +305,7 @@ char* remocao(char *nome,int num){
             TNO *irmao_dir = mapear(atual->filhos[i+1]);
             if (irmao_dir->nChaves>t-1){
                 caso_3a_irm_dir(atual,caminho,irmao_dir,i);
+                salvar(atual->filhos[i+1],irmao_dir);  salvar(e,caminho);  salvar(nome,atual);
                 return remocao(e,num);
             }
             desmapear(irmao_dir);
@@ -317,17 +314,12 @@ char* remocao(char *nome,int num){
             TNO *irmao_esq = mapear(atual->filhos[i-1]);
             if (irmao_esq->nChaves>t-1){
                 caso_3a_irm_esq(atual,caminho,irmao_esq,i);
+                salvar(atual->filhos[i-1],irmao_esq);  salvar(e,caminho);  salvar(nome,atual);
                 return remocao(e,num);
             }
             desmapear(irmao_esq);
         }
     }
-    desmapear(atual);
-    desmapear(fi);
-    strcpy(e, remocao(e, num));
-    atual = mapear(nome);
-    strcpy(atual->filhos[i], e);
-    salvar(nome,atual);
     return nome;
 }
 
