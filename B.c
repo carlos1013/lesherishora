@@ -281,7 +281,7 @@ char* remocao(char *nome,int num){
         if(i < atual->nChaves) {
             TNO* fib = mapear(atual->filhos[i+1]); // irmao imediato a direita do filho i
             if(fib->nChaves >= t) { // se irmao imediato do filho i tem pelo menos t chaves... 3A :)
-                fi->chaves[t - 1] = atual->chaves[i]; // a ultima chave do filho i sera a cave  i do no atual
+                fi->chaves[t - 1] = atual->chaves[i]; // a chave t-1 do filho i sera a cave i do no atual
                 fi->nChaves++;
 
                 atual->chaves[i] = fib->chaves[0]; // substituir a chave i do no atual pela primeira chave do irmao
@@ -306,6 +306,13 @@ char* remocao(char *nome,int num){
             desmapear(fib);
         }
     }
+
+    desmapear(atual);
+    strcpy(e, remocao(e, num));
+    atual = mapear(nome);
+    strcpy(atual->filhos[i], e);
+    salvar(nome,atual);
+    return nome;
 }
 
 void remover(char *nome,int num){
@@ -317,7 +324,6 @@ void remover(char *nome,int num){
     free(b);
     return;
 }
-
 
 void imprimir_no(TNO *no){
     int x;
@@ -507,9 +513,11 @@ int main(){
         else if (op == 2) {
             printf("Digite o numero a ser removido\n");
             scanf("%d", &num);
+
             if(num > 0) {
                 remover(nome,num);
             }
+
         }
         else if (op == 3) {
             printf("Digite o valor a ser buscado:\n");
