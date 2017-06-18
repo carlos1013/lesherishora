@@ -207,7 +207,7 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
 
 
 
-char* remocao(char *nome,int num){
+void remocao(char *nome,int num){
     TNO *atual = mapear(nome);
     printf("tentando remover %d no arquivo %s\n", num, nome);
     int i, j;
@@ -221,84 +221,75 @@ char* remocao(char *nome,int num){
                 atual->chaves[j] = atual->chaves[j+1];
             }
             salvar(nome, atual);
-            return nome;
+            return;
         }
         //caso 2A
-        if (i>0){
-            TNO *caminho = mapear(atual->filhos[i-1]);
-            if(caminho->nChaves >= t) {
-                while(!caminho->folha) { // a partir do filho a esquerda, pega o filho mais a direita do fim da arvore
-                    strcpy(e,caminho->filhos[caminho->nChaves]);
-                    desmapear(caminho);
-                    caminho = mapear(e);
-                }
-                int temp = caminho->chaves[caminho->nChaves - 1];
-                atual->chaves[i] = temp;
-                salvar(nome,atual);
-                desmapear(caminho);
-                strcpy(e,atual->filhos[i-1]);
-                remocao(e,temp);
-                return nome;
+        TNO *filho_esq = mapear(atual->filhos[i]);
+        if(filho_esq->nChaves >= t) {
+            while(!filho_esq->folha) { // a partir do filho a esquerda, pega o filho mais a direita do fim da arvore
+                strcpy(e,filho_esq->filhos[filho_esq->nChaves]);
+                desmapear(filho_esq);
+                filho_esq = mapear(e);
             }
-            desmapear(caminho);
+            int temp = filho_esq->chaves[filho_esq->nChaves - 1];
+            atual->chaves[i] = temp;
+            salvar(nome,atual);
+            desmapear(filho_esq);
+            strcpy(e,atual->filhos[i]);
+            remocao(e,temp);
+            return;
         }
         //caso 2B
-        if (i<atual->nChaves){
-            TNO *caminho = mapear(atual->filhos[i+1]);
-            if(caminho->nChaves >= t) {
-                while(!caminho->folha) { // a partir do filho a direita, pega o filho mais a esquerda do fim da arvore
-                    strcpy(e,caminho->filhos[0]);
-                    desmapear(caminho);
-                    caminho = mapear(e);
-                }
-                int temp = caminho->chaves[0];
-                atual->chaves[i] = temp;
-                salvar(nome,atual);
-                desmapear(caminho);
-                strcpy(e,atual->filhos[i+1]);
-                remocao(e,temp);
-                return nome;
+        TNO *filho_dir = mapear(atual->filhos[i+1]);
+        if(filho_dir->nChaves >= t) {
+            desmapear(filho_esq);
+            while(!filho_dir->folha) { // a partir do filho a direita, pega o filho mais a esquerda do fim da arvore
+                strcpy(e,filho_dir->filhos[0]);
+                desmapear(filho_dir);
+                filho_dir = mapear(e);
             }
-            desmapear(atual);
+            int temp = filho_dir->chaves[0];
+            atual->chaves[i] = temp;
+            salvar(nome,atual);
+            desmapear(filho_dir);
+            strcpy(e,atual->filhos[i+1]);
+            remocao(e,temp);
+            return;
         }
+
         //caso 2C
         if(filho_esq->nChaves == t-1 && filho_dir->nChaves == t-1) {
             filho_esq->chaves[filho_esq->nChaves] = num;
             for(j=0; j<t-1; j++)
                 filho_esq->chaves[j+t] = filho_dir->chaves[j];
             if(!filho_esq->folha) {
-                for(j=0; j<=t; j++)
+                for(j=0; j<=t-1; j++)
                     strcpy(filho_esq->filhos[j+t], filho_dir->filhos[j]);
             }
             filho_esq->nChaves = MAX_CHAVES(t);
-
-            salvar(e, filho_esq);
-            if(filho_dir->folha)
-                remove(d);
+            remove(atual->filhos[i+1]);
             desmapear(filho_dir);
-
-            strcpy(e, remocao(e, num));
-            atual = mapear(nome);
-            // da erro se a arvore tiver apenas dois niveis e a raiz tiver apenas uma chave. segue a gambiarra:
-            if (atual->nChaves == 1) { // tenho certeza que so acontece na raiz...
-                salvar(nome, mapear(e));// salva na raiz o filho da esquerda
-                remove(e); // remove o filho da esquerda da face da terra
+            if (atual->nChaves == 1) {
+                salvar(nome,filho_esq);            // salva na raiz o filho da esquerda
+                remove(atual->filhos[i]);                // remove o filho da esquerda da face da terra
                 desmapear(atual);
-                return nome;
+                return;
             }
+            salvar(atual->filhos[i],filho_esq);
             atual->nChaves--;
             for(j=i; j < atual->nChaves; j++)
                 atual->chaves[j] = atual->chaves[j+1];
             for(j=i+1; j <= atual->nChaves; j++)
                 strcpy(atual->filhos[j], atual->filhos[j+1]);
-            strcpy(atual->filhos[i], e);
+            strcpy(e,atual->filhos[i]);
             salvar(nome, atual);
-
-            return nome;
+            remocao(e,num);
+            return;
         }
+        desmapear(filho_dir);
+        desmapear(filho_esq);
     }
-    strcpy(e, atual->filhos[i]);
-    TNO* caminho = mapear(e); // filho q pode conter a chave...
+    TNO* caminho = mapear(atual->filhos[i]); // filho q pode conter a chave...
     if (caminho->nChaves == t-1) {
         //caso 3a
         if(i>0) {
@@ -320,7 +311,9 @@ char* remocao(char *nome,int num){
             desmapear(irmao_esq);
         }
     }
-    return nome;
+    strcpy(e,atual->filhos[i]);
+    desmapear(atual);
+    remocao(e,num);
 }
 
 void remover(char *nome,int num){
