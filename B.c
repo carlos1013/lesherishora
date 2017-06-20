@@ -173,7 +173,12 @@ char *buscar (char *nome,int num){
 
 void caso_3a_irm_dir(TNO *atual,TNO *caminho,TNO *irmao_dir,int i){
     int j;
-    caminho->chaves[caminho->nChaves] = atual->chaves[i];
+    if (i==atual->nChaves){
+        caminho->chaves[caminho->nChaves] = atual->chaves[i-1];
+    }
+    else{
+        caminho->chaves[caminho->nChaves] = atual->chaves[i];
+    }
     strcpy(caminho->filhos[caminho->nChaves+1],irmao_dir->filhos[0]);
     caminho->nChaves++;
     atual->chaves[i] = irmao_dir->chaves[0];
@@ -197,11 +202,16 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
         for (j=caminho->nChaves+1;j>0;j--){
             strcpy(caminho->filhos[j],caminho->filhos[j-1]);
         }
+        strcpy(caminho->filhos[0],irmao_esq->filhos[irmao_esq->nChaves]);
     }
-    caminho->chaves[0] = atual->chaves[i];
-    strcpy(caminho->filhos[0],irmao_esq->filhos[irmao_esq->nChaves]);
+    if (i==0){
+        caminho->chaves[0] = atual->chaves[i];
+    }
+    else{
+        caminho->chaves[0] = atual->chaves[i-1];
+    }
     caminho->nChaves++;
-    atual->chaves[i] = irmao_esq->chaves[irmao_esq->nChaves-1];
+    atual->chaves[i-1] = irmao_esq->chaves[irmao_esq->nChaves-1];
     irmao_esq->nChaves--;
 }
 
@@ -211,9 +221,11 @@ void remocao(char *nome,int num){
     int i, j;
     char e[TAM_NOME_ARQUIVO];
     for(i = 0; i<atual->nChaves && atual->chaves[i] < num; i++);// encontrar o lugar da chave
-    if(i<atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
+
+    if(i < atual->nChaves && num == atual->chaves[i]){ // Se o num esta no NO atual (caso 1, 2A, 2B e 2C)
         //caso 1
         if(atual->folha) {
+            printf("Caso 1\n");
             atual->nChaves--;
             for(j=i; j<atual->nChaves; j++){               // reorganiza as chaves
                 atual->chaves[j] = atual->chaves[j+1];
@@ -224,6 +236,7 @@ void remocao(char *nome,int num){
         //caso 2A
         TNO *filho_esq = mapear(atual->filhos[i]);
         if(filho_esq->nChaves >= t) {
+            printf("Caso 2a\n");
             while(!filho_esq->folha) { // a partir do filho a esquerda, pega o filho mais a direita do fim da arvore
                 strcpy(e,filho_esq->filhos[filho_esq->nChaves]);
                 desmapear(filho_esq);
@@ -231,15 +244,15 @@ void remocao(char *nome,int num){
             }
             int temp = filho_esq->chaves[filho_esq->nChaves - 1];
             atual->chaves[i] = temp;
+            strcpy(e,atual->filhos[i]);
             salvar(nome,atual);
             desmapear(filho_esq);
-            strcpy(e,atual->filhos[i]);
-            remocao(e,temp);
-            return;
+            return remocao(e,temp);
         }
         //caso 2B
         TNO *filho_dir = mapear(atual->filhos[i+1]);
         if(filho_dir->nChaves >= t) {
+            printf("Caso 2b\n");
             desmapear(filho_esq);
             while(!filho_dir->folha) { // a partir do filho a direita, pega o filho mais a esquerda do fim da arvore
                 strcpy(e,filho_dir->filhos[0]);
@@ -248,15 +261,15 @@ void remocao(char *nome,int num){
             }
             int temp = filho_dir->chaves[0];
             atual->chaves[i] = temp;
+            strcpy(e,atual->filhos[i+1]);
             salvar(nome,atual);
             desmapear(filho_dir);
-            strcpy(e,atual->filhos[i+1]);
-            remocao(e,temp);
-            return;
+            return remocao(e,temp);
         }
 
         //caso 2C
         if(filho_esq->nChaves == t-1 && filho_dir->nChaves == t-1) {
+            printf("Caso 2c\n");
             filho_esq->chaves[filho_esq->nChaves] = num;
             for(j=0; j<t-1; j++)
                 filho_esq->chaves[j+t] = filho_dir->chaves[j];
@@ -281,8 +294,7 @@ void remocao(char *nome,int num){
                 strcpy(atual->filhos[j], atual->filhos[j+1]);
             strcpy(e,atual->filhos[i]);
             salvar(nome, atual);
-            remocao(e,num);
-            return;
+            return remocao(e,num);
         }
         desmapear(filho_dir);
         desmapear(filho_esq);
@@ -293,8 +305,11 @@ void remocao(char *nome,int num){
         if(i<atual->nChaves) {
             TNO *irmao_dir = mapear(atual->filhos[i+1]);
             if (irmao_dir->nChaves>t-1){
+                //3A irmao direita
+                printf("Caso 3a irmao da direita\n");
                 caso_3a_irm_dir(atual,caminho,irmao_dir,i);
-                salvar(atual->filhos[i+1],irmao_dir);  salvar(e,caminho);  salvar(nome,atual);
+                strcpy(e, atual->filhos[i]);
+                salvar(atual->filhos[i+1],irmao_dir);  salvar(atual->filhos[i],caminho);  salvar(nome,atual);
                 return remocao(e,num);
             }
             desmapear(irmao_dir);
@@ -302,16 +317,20 @@ void remocao(char *nome,int num){
         if (i>0){
             TNO *irmao_esq = mapear(atual->filhos[i-1]);
             if (irmao_esq->nChaves>t-1){
+                //3A irmao esquerda
+                printf("Caso 3a irmao da esquerda\n");
                 caso_3a_irm_esq(atual,caminho,irmao_esq,i);
-                salvar(atual->filhos[i-1],irmao_esq);  salvar(e,caminho);  salvar(nome,atual);
+                strcpy(e, atual->filhos[i]);
+                salvar(atual->filhos[i-1],irmao_esq);  salvar(atual->filhos[i],caminho);  salvar(nome,atual);
                 return remocao(e,num);
             }
             desmapear(irmao_esq);
         }
         if (i<atual->nChaves){
-            //3b
             TNO* irmao_dir = mapear(atual->filhos[i+1]);
             if (irmao_dir->nChaves == t-1){
+                //3B irmao direita
+                printf("Caso 3b irmao da direita\n");
                 caminho->chaves[caminho->nChaves] = atual->chaves[i];
                 for(j=0; j<irmao_dir->nChaves; j++)
                     caminho->chaves[j+t] = irmao_dir->chaves[j];
@@ -323,10 +342,10 @@ void remocao(char *nome,int num){
                 remove(atual->filhos[i+1]);
                 desmapear(irmao_dir);
                 if (atual->nChaves==1){
-                    salvar(nome,irmao_dir);
+                    salvar(nome,caminho);
                     remove(atual->filhos[i]);
                     desmapear(atual);
-                    return remocao(nome,num);
+                    return remocao(nome, num);
                 }
                 atual->nChaves--;
                 for(j=i; j<atual->nChaves; j++)
@@ -343,10 +362,16 @@ void remocao(char *nome,int num){
         }
 
         if (i>0){
-            //3b
-            TNO *irmao_esq = mapear(atual->filhos[i]);
+            TNO *irmao_esq = mapear(atual->filhos[i-1]);
             if (irmao_esq->nChaves == t-1) {
-                irmao_esq->chaves[irmao_esq->nChaves] = atual->chaves[i];
+                //3B irmao esquerda
+                printf("Caso 3b irmao da esquerda\n");
+                if (i==atual->nChaves){
+                    irmao_esq->chaves[irmao_esq->nChaves] = atual->chaves[i-1];
+                }
+                else{
+                    irmao_esq->chaves[irmao_esq->nChaves] = atual->chaves[i];
+                }
                 for(j=0; j<caminho->nChaves; j++)
                     irmao_esq->chaves[j+t] = caminho->chaves[j];
                 if (!caminho->folha){
@@ -358,16 +383,17 @@ void remocao(char *nome,int num){
                 desmapear(caminho);
                 if (atual->nChaves==1){
                     salvar(nome,irmao_esq);
-                    remove(atual->filhos[i]);
+                    remove(atual->filhos[i-1]);
+                    desmapear(caminho);
                     desmapear(atual);
                     return remocao(nome,num);
                 }
                 salvar(atual->filhos[i-1],irmao_esq);
                 atual->nChaves--;
-                for(j=i; j<atual->nChaves; j++)
+                for(j=i-1; j<atual->nChaves; j++)
                     atual->chaves[j] = atual->chaves[j+1];
 
-                for(j=i; j <= atual->nChaves; j++)
+                for(j=i-1; j <= atual->nChaves; j++)
                     strcpy(atual->filhos[j], atual->filhos[j+1]);
                 strcpy(e,atual->filhos[i-1]);
                 salvar(atual->filhos[i-1],irmao_esq); salvar(nome,atual);
@@ -378,6 +404,7 @@ void remocao(char *nome,int num){
     }
     strcpy(e,atual->filhos[i]);
     desmapear(atual);
+    desmapear(caminho);
     remocao(e,num);
 }
 
