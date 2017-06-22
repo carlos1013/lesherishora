@@ -174,11 +174,9 @@ char *buscar (char *nome,int num){
 void caso_3a_irm_dir(TNO *atual,TNO *caminho,TNO *irmao_dir,int i){
     int j;
     if (i==atual->nChaves){
-        caminho->chaves[caminho->nChaves] = atual->chaves[i-1];
+        i--;
     }
-    else{
-        caminho->chaves[caminho->nChaves] = atual->chaves[i];
-    }
+    caminho->chaves[caminho->nChaves] = atual->chaves[i];
     strcpy(caminho->filhos[caminho->nChaves+1],irmao_dir->filhos[0]);
     caminho->nChaves++;
     atual->chaves[i] = irmao_dir->chaves[0];
@@ -205,11 +203,9 @@ void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i){
         strcpy(caminho->filhos[0],irmao_esq->filhos[irmao_esq->nChaves]);
     }
     if (i==0){
-        caminho->chaves[0] = atual->chaves[i];
+        i++;
     }
-    else{
-        caminho->chaves[0] = atual->chaves[i-1];
-    }
+    caminho->chaves[0] = atual->chaves[i-1];
     caminho->nChaves++;
     atual->chaves[i-1] = irmao_esq->chaves[irmao_esq->nChaves-1];
     irmao_esq->nChaves--;
@@ -384,16 +380,14 @@ void remocao(char *nome,int num){
                 if (atual->nChaves==1){
                     salvar(nome,irmao_esq);
                     remove(atual->filhos[i-1]);
-                    desmapear(caminho);
                     desmapear(atual);
                     return remocao(nome,num);
                 }
-                salvar(atual->filhos[i-1],irmao_esq);
                 atual->nChaves--;
                 for(j=i-1; j<atual->nChaves; j++)
                     atual->chaves[j] = atual->chaves[j+1];
 
-                for(j=i-1; j <= atual->nChaves; j++)
+                for(j=i; j <= atual->nChaves; j++)
                     strcpy(atual->filhos[j], atual->filhos[j+1]);
                 strcpy(e,atual->filhos[i-1]);
                 salvar(atual->filhos[i-1],irmao_esq); salvar(nome,atual);
