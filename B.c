@@ -570,7 +570,7 @@ void imprimir(char *nome, int n){
     }
 }
 
-int main(){
+int main(int argc, char* argv[]){
     nome_count = 2;
     char nome[TAM_NOME_ARQUIVO];
     int op,num;
@@ -584,6 +584,18 @@ int main(){
     if (op){
         inicializa(nome);
     }
+
+    if (argc > 1) {
+        FILE *arq_test = fopen(argv[1], "r");
+        if (!arq_test) printf("Erro ao tentar abrir aquivo de entrada\n");
+        else {
+            int n;
+            while (fscanf(arq_test, "%d", &n) != EOF) inserir(nome, n);
+            fclose(arq_test);
+            imprimir(nome, 0);
+        }
+    }
+
     while(1) {
         printf("Operacoes: \n1. Inserir \n2. Remover \n3. Buscar \n4. Imprimir \n0. Sair \n-1. Sair sem liberar\n");
         scanf("%d", &op);
