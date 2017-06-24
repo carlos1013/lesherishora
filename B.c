@@ -21,8 +21,14 @@ void desmapear(TNO *no);
 void salvar(char* nome,TNO *no);
 void liberar(char *nome);
 char *buscar (char *nome, int num);
+void dividir(char *rz,char *f_esq,int x);
 void ins_aux (char* nome,int num);
 void inserir (char* nome, int num);
+void caso_3a_irm_dir(TNO *atual,TNO *caminho,TNO *irmao_dir,int i);
+void caso_3a_irm_esq(TNO *atual,TNO *caminho,TNO *irmao_esq,int i);
+void remocao(char *nome,int num);
+void remover(char *nome,int num);
+void imprimir_no(TNO *no);
 void imprimir(char *nome, int n);
 
 int t;
@@ -589,8 +595,20 @@ int main(int argc, char* argv[]){
         FILE *arq_test = fopen(argv[1], "r");
         if (!arq_test) printf("Erro ao tentar abrir aquivo de entrada\n");
         else {
-            int n;
-            while (fscanf(arq_test, "%d", &n) != EOF) inserir(nome, n);
+            int n, c = 1;
+            while (fscanf(arq_test, "%d", &n) != EOF) {
+                if (n == -1) {
+                    c *= n;
+                    imprimir(nome, 0);
+                    continue;
+                }
+                if (n == 0) {
+                    imprimir(nome, 0);
+                    continue;
+                }
+                if (c == 1) inserir(nome, n);
+                else remocao(nome, n);
+            }
             fclose(arq_test);
             imprimir(nome, 0);
         }
