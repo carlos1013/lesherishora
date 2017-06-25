@@ -597,7 +597,7 @@ int main(int argc, char* argv[]){
         else {
             int n, c = 1;
             while (fscanf(arq_test, "%d", &n) != EOF) {
-                if (n == -1) {
+                if (n < 0) {
                     c *= n;
                     imprimir(nome, 0);
                     continue;
