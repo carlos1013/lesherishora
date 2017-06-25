@@ -582,6 +582,10 @@ int main(int argc, char* argv[]){
     int op,num;
     printf("Insira o t da arvore:\n");
     scanf("%d",&t);
+    if(t<2){
+        printf("valor invalido para t\n");
+        return 0;
+    }
     printf("Insira o nome do arquivo:\n");
     scanf("%s",nome);
     setbuf(stdin,NULL);
@@ -590,28 +594,28 @@ int main(int argc, char* argv[]){
     if (op){
         inicializa(nome);
     }
-
     if (argc > 1) {
         FILE *arq_test = fopen(argv[1], "r");
-        if (!arq_test) printf("Erro ao tentar abrir aquivo de entrada\n");
-        else {
-            int n, c = 1;
-            while (fscanf(arq_test, "%d", &n) != EOF) {
-                if (n < 0) {
-                    c *= n;
-                    imprimir(nome, 0);
-                    continue;
-                }
-                if (n == 0) {
-                    imprimir(nome, 0);
-                    continue;
-                }
-                if (c == 1) inserir(nome, n);
-                else remocao(nome, n);
-            }
-            fclose(arq_test);
-            imprimir(nome, 0);
+        if (!arq_test) {
+            printf("Erro ao tentar abrir aquivo de entrada\n");
+            exit(1);
         }
+        int n, c = 1;
+        while (fscanf(arq_test, "%d", &n) != EOF) {
+            if (n < 0) {
+                c *= n;
+                imprimir(nome,0);
+                continue;
+            }
+            if (n == 0) {
+                imprimir(nome,0);
+                continue;
+            }
+            if (c == 1) inserir(nome, n);
+            else remocao(nome, n);
+        }
+        fclose(arq_test);
+        imprimir(nome, 0);
     }
 
     while(1) {
